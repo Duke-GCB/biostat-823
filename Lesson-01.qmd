@@ -1,0 +1,159 @@
+---
+title: "Biostat 823 - Literate Programming"
+format: revealjs
+editor: visual
+knitr:
+  opts_chunk:
+    echo: TRUE
+---
+
+## Literate Programming
+
+-   First introduced by Donald Knuth ("The Art of Computer Programming") in 1984
+
+    > Let us change our traditional attitude to the construction of programs: Instead of imagining that our main task is to instruct a computer what to do, let us concentrate rather on explaining to human beings what we want a computer to do.
+
+    D. E. Knuth, Literate Programming, The Computer Journal, Volume 27, Issue 2, 1984, Pages 97--111, <https://doi.org/10.1093/comjnl/27.2.97>
+
+## TANGLE and WEAVE
+
+![Figure 1 from Knuth (1984)](images/Knuth 1984 - Fig 1.png)
+
+## Lit. Prog. and Reproducible Research
+
+> **Literate Programming:** Enhances traditional software development by embedding code in explanatory essays and encourages treating the act of development as one of communication with future maintainers
+>
+> **Reproducible Research:** Embeds executable code in research reports and publications, with the aim of allowing readers to re-run the analyses described.
+
+::: aside
+Schulte, E., Davison, D., Dye, T., & Dominik, C. (2012). A Multi-Language Computing Environment for Literate Programming and Reproducible Research. Journal of Statistical Software, 46(3), 1--24. <https://doi.org/10.18637/jss.v046.i03>
+:::
+
+## Code not paper is the scholarship
+
+> An article about computational science in a scientific publication is not the schol- arship itself, it is merely advertising of the scholarship. The actual scholarship is the complete software development environment and complete set of instructions which generated the figures.
+
+
+::: aside
+Buckheit JB, Donoho DL (1995). “WaveLab and Reproducible Research.” In A Antoniadis, G Oppenheim (eds.), Wavelets and Statistics, volume 103 of Lecture Notes in Statistics, pp. 55–81. Springer-Verlag, New York. doi:[10.1007/978-1-4612-2544-7_5](https://doi.org/10.1007/978-1-4612-2544-7_5)
+
+who summarized _Claerbout, Jon (1994). Hypertext Documents about Reproducible Research_, http://sepwww.Stanford.edu.
+:::
+
+## Research Compendium
+
+- Encapsulates the actual work, not just an abridged version;
+- Allows different levels of detail in different renderings;
+- Easy to re-run by anyone;
+- Provides explicit computational details, enabling others to adapt and extend the reported computational methods;
+- Enables programmatic construction and clear provenance of plots and tables;
+
+::: aside
+Robert Gentleman & Duncan Temple Lang (2007) Statistical Analyses and Reproducible Research, Journal of Computational and Graphical Statistics, 16:1, 1-23, DOI: [10.1198/106186007X178663](https://doi.org/10.1198/106186007X178663)
+:::
+
+---
+
+![Part of Figure 1, Gentleman and Temple Lang (2007)](images/Gentleman and Lang 2007 - Fig 1.png)
+
+## Reproducible research lens
+
+> Embeds executable code in research reports and publications, with the aim of allowing readers to re-run the analyses described. ([Schulte et al (2012)](https://doi.org/10.18637/jss.v046.i03))
+
+Important concepts:
+
+- Ties together narrative (the "why"), code that implements it, and the results from running the code.
+- Can be executed ("executable paper"), in its original or modified form.
+- Provenance of tables and charts is clear and verifiable.
+
+## Sweave (Leisch 2002)
+
+![Part of Figure 1, F. Leisch (2002). "[Sweave, Part I: Mixing R and LaTeX: A short introduction to the Sweave file format and corresponding R functions](https://cran.r-project.org/doc/Rnews/Rnews_2002-3.pdf)". R News. 2 (3): 28–31.](images/Leisch 2002 - Fig 1.png)
+
+---
+
+![Figure 2, F. Leisch (2002)](images/Leisch 2002 - Fig 2.png)
+
+## Renewed interest for reproducible computing
+
+* The practice of copying values for tables and plots for figures into a document _breaks the provenance chain_.
+
+**Provenance**: Information about entities, activities, and people involved in producing  data or other results, which are necessary to assess their quality, reliability or trustworthiness.^[Modified from W3C's [An Overview of the PROV Family of Documents](https://www.w3.org/TR/prov-overview/).]
+
+## "Executable Paper" concept:
+
+* eLife "[Welcome to a new ERA of reproducible publishing](https://elifesciences.org/labs/dc5acbde/welcome-to-a-new-era-of-reproducible-publishing)"
+* For example: L Michelle Lewis et al, Reproducibility Project: Cancer Biology (2018) [Replication Study: Transcriptional amplification in tumor cells with elevated c-Myc](https://doi.org/10.7554/eLife.30274). eLife 7:e30274. [Executable version](https://elifesciences.org/articles/30274/executable)
+* Boettiger C et al (2016). “[RNeXML: A Package for Reading and Writing Richly Annotated Phylogenetic, Character, and Trait Data in R](https://doi.org/10.1111/2041-210X.12469).” Methods in Ecology and Evolution, 7, pp. 352-357. [Rmarkdown version and rendered PDF](https://github.com/ropensci/RNeXML/tree/master/manuscripts)
+
+## Jupyter and iPython Notebooks
+
+* iPython (interactive Python) created by [Fernando Pérez](https://en.wikipedia.org/wiki/Fernando_Pérez_(software_developer)) in 2001, gained Notebook interface in 2011
+* [Project Jupyter](https://jupyter.org) started in 2015 as a spin-off
+  - Supports a multitude of kernels
+  - JupyterLab first released in 2018
+  - JupyterHub first released in 2019
+* [Intro to Jupyter](https://reproducible-science-curriculum.github.io/introduction-RR-Jupyter/docs/slides/Jupyter_Intro_Background.slides.html#/)^[From the [Reproducible Science Curriculum](https://github.com/Reproducible-Science-Curriculum)]
+  - Itself generated from a [source Jupyter Notebook](https://github.com/Reproducible-Science-Curriculum/introduction-RR-Jupyter/blob/gh-pages/notebooks/Jupyter_Intro_Background.ipynb)
+
+## Knitr and Rmarkdown
+
+* [Knitr](https://yihui.org/knitr/) created by Yihui Xie, first released 2012 <img src="https://db.yihui.org/imgur/yYw46aF.jpg" align="right" width=200 style="margin-left: 1em;" />
+  - Designed as a general-purpose literate programming engine
+  - Design allows different input languages and different output formats
+* [Rmarkdown](https://bookdown.org/yihui/rmarkdown/)
+  - First introduced in knitr in early 2012, withh the idea to embed code chunks in Markdown documents.
+  - rmarkdown R package created in 2014
+  - Rich universe of examples at [RPubs](https://rpubs.com)
+
+## Markdown and code
+
+In Rmarkdown, code can be inline:
+```markdown
+Consider Edgar Anderson's Iris data of sepal and petal lengths measurements
+of `r '\x60r nrow(iris)\x60'` flowers, (`r '\x60r sum(iris$Species=="setosa")\x60'` _I. setosa_,
+`r '\x60r sum(iris$Species=="versicolor")\x60'` _I. versicolor_, and
+`r '\x60r sum(iris$Species=="virginica")\x60'` _I. virginica_).
+```
+Consider Edgar Anderson's Iris data of sepal and petal lengths measurement
+of `r nrow(iris)` flowers, (`r sum(iris$Species=="setosa")` I. _setosa_,
+`r sum(iris$Species=="versicolor")` I. _versicolor_, and
+`r sum(iris$Species=="virginica")` I. _virginica_).
+
+## Code chunks {.scrollable}
+
+A linear regression model of petal width by sepal length can be fitted in the following way:
+````
+`r '\x60\x60\x60{r irisRegr}
+lm1 = lm(Petal.Width ~ Sepal.Length, data=iris)
+summary(lm1)
+\x60\x60\x60'`
+````
+
+```{r irisRegr}
+lm1 = lm(Petal.Width ~ Sepal.Length, data=iris)
+summary(lm1)
+```
+
+## Plots also get inlined {.scrollable}
+
+Plots of the regression residuals etc can be obtained in the following way:
+```{r}
+#| layout-ncol: 2
+plot(lm1)
+```
+
+## Ecosystem
+
+One report document, rendered to many different output formats
+
+![](images/Rmd_workflow_cheatsheet.png)
+
+## Further reading {.smaller}
+
+* List of [Literate Programming environments on Wikipedia](https://en.wikipedia.org/wiki/Literate_programming#Literate_programming_practices)
+* Xie Y, Allaire J, Grolemund G (2018). [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown). Chapman and Hall/CRC, Boca Raton, Florida. ISBN 9781138359338
+* Resul Umit (2022) [Writing Reproducible Research Papers with R Markdown](https://resulumit.com/teaching/rmd_workshop.html)
+* Chapters "[Jupyter Notebook for Open Science](https://reproducible-analysis-workshop.readthedocs.io/en/latest/4.Jupyter-Notebook.html)", "[R for Reproducible Scientific Analysis (Jupyter)](https://reproducible-analysis-workshop.readthedocs.io/en/latest/5.Jupyter-R.html)", and "[R for Reproducible Scientific Analysis (RMarkdown / knitr)](https://reproducible-analysis-workshop.readthedocs.io/en/latest/6.RMarkdown-knitr.html)" in "[Reproducible analysis and Research Transparency Workshop (2017)](https://reproducible-analysis-workshop.readthedocs.io/en/latest/)
+* J.M. Perkel (2018). Why Jupyter is data scientists’ computational notebook of choice. Nature 563, 145-146. doi:<https://doi.org/10.1038/d41586-018-07196-1>
+* Rule, Adam, Amanda Birmingham, Cristal Zuniga, Ilkay Altintas, Shih-Cheng Huang, Rob Knight, Niema Moshiri, et al. 2019. “Ten Simple Rules for Writing and Sharing Computational Analyses in Jupyter Notebooks.” PLOS Computational Biology 15 (7): e1007007. <https://doi.org/10.1371/journal.pcbi.1007007>
