@@ -625,6 +625,16 @@
 <li>Use <code>--fakeroot</code> for <code>singularity build</code> in a non-privileged environment</li>
 </ul>
 </section>
+<section id="note-mounting-data-into-the-container" class="slide level2">
+<h2>(Note) Mounting data into the container</h2>
+<p>Requires bind mount at container runtime (<code>docker run</code>):</p>
+<ul>
+<li><code>--volume &lt;local-path&gt;:&lt;container-path&gt;</code> (Docker)</li>
+<li><code>--bind &lt;local-path&gt;:&lt;container-path&gt;</code> (Singularity)</li>
+<li>Can be used for directories and files</li>
+<li>Using <code>--mount</code> generates an error if target directory (or file) doesn’t exist</li>
+</ul>
+</section>
 <section id="resources" class="slide level2">
 <h2>Resources</h2>
 <ul>
@@ -632,6 +642,7 @@
 <li><a href="https://docs.docker.com/engine/reference/commandline/cli/">Docker command line reference</a></li>
 <li><a href="https://docs.sylabs.io/guides/latest/user-guide/definition_files.html">Singularity file reference</a></li>
 <li><a href="https://docs.sylabs.io/guides/latest/user-guide/cli.html">Singularity command line reference</a></li>
+<li><a href="https://github.com/opencontainers/image-spec/blob/main/annotations.md">Open Containers Initiative (OCI) standard for annotations</a></li>
 </ul>
 <div class="footer footer-default">
 

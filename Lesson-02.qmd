@@ -191,9 +191,19 @@ CMD ["java", "-jar", "picard.jar"]
     ```
 * Use `--fakeroot` for `singularity build` in a non-privileged environment
 
+## (Note) Mounting data into the container
+
+Requires bind mount at container runtime (`docker run`):
+
+* `--volume <local-path>:<container-path>` (Docker)
+* `--bind <local-path>:<container-path>` (Singularity)
+* Can be used for directories and files
+* Using `--mount` generates an error if target directory (or file) doesn't exist
+
 ## Resources
 
 * [Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
 * [Docker command line reference](https://docs.docker.com/engine/reference/commandline/cli/)
 * [Singularity file reference](https://docs.sylabs.io/guides/latest/user-guide/definition_files.html)
 * [Singularity command line reference](https://docs.sylabs.io/guides/latest/user-guide/cli.html)
+* [Open Containers Initiative (OCI) standard for annotations](https://github.com/opencontainers/image-spec/blob/main/annotations.md)
