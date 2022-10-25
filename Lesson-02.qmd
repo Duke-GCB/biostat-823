@@ -1,0 +1,199 @@
+---
+title: "Biostat 823 - Containerization"
+author: "Hilmar Lapp"
+institute: "Duke University, Department of Biostatistics & Bioinformatics"
+date: "Fall 2022"
+format:
+  revealjs:
+    slide-number: true
+editor: visual
+knitr:
+  opts_chunk:
+    echo: TRUE
+---
+
+## Challenges to computational reproducibility
+
+Reproducibility of computational research faces four major challenges^[Boettiger, C. (2015). An introduction to Docker for reproducible research. ACM SIGOPS Operating Systems Review, 49(1), 71–79. <https://doi.org/10.1145/2723872.2723882>]:
+
+* Dependency Hell
+* Imprecise documentation
+* Code rot
+* High barriers to adoption for solutions prior to containerization
+
+## "Dependency Hell"
+
+* Software dependencies have themselves dependencies recursively
+* Dependencies can be be often difficult to install (require compilation, manual "tweaks" due local OS or other differences, etc)
+* Required version may conflict with that required by other software, or may not work with the local OS version, making it impossible to install.
+  - The likelihood of conflicts is particularly high on shared computing environments. 
+
+## Imprecise documentation
+
+* Research grade software often lacks full documentation on how to install and run it
+  - The resulting barriers can be time consuming,
+  - or even unsurmountable, especially for those unfamiliar with the domain or software.
+
+## Code rot
+
+* Dependencies often continue to be developed further
+  - Resulting changes in behavior or input/output formats can be breaking changes due to violating expectations.
+  - Behavior and other breaking changes can be the result of bug fixes.
+  - This can happen anywhere in the dependency chain.
+* Dependencies can also become unmaintained or end-of-life
+  - Can result in removal from package repositories.
+  - Python 2.x example
+
+## Virtual Machine as solution?
+
+* Pros: Creates a full computational environment with everything pre-installed, addressing Dependency Hell, Imprecise Documentation, and Code Rot issues.
+* Cons:
+  - "Heavyweight": huge in size, only few can run on a host
+  - Therefore, very limited for reuse through composing
+  - Effectively "black boxes" in the absence of fully automated build definition
+  - Technologies for automated and declarative build definitions very difficult to adopt for domain scientists
+
+## Containers are lightweight
+
+![Virtual Machines vs Containers (from [Docker vs Virtual Machines (VMs) : A Practical Guide to Docker Containers and VMs](https://www.weave.works/blog/a-practical-guide-to-choosing-between-docker-containers-and-vms))](images/VM vs container.jpeg)
+
+## A brief history
+
+- 1979: [chroot](https://en.wikipedia.org/wiki/Chroot) on Unix V7
+- 2000: [jail](https://en.wikipedia.org/wiki/FreeBSD_jail) command on FreeBSD
+- 2002: [Linux namespaces](https://en.wikipedia.org/wiki/Linux_namespaces)
+- 2007 (v1) and 2013--16 (v2): Linux control groups ([cgroups](https://en.wikipedia.org/wiki/Cgroups))
+- 2008: [Linux Containers (LXC)](https://en.wikipedia.org/wiki/LXC)
+- 2013: [Docker](https://www.docker.com)
+- 2015: [Singularity](https://en.wikipedia.org/wiki/Singularity_(software))
+
+::: aside
+There are many [OS-level virtualization](https://en.wikipedia.org/wiki/OS-level_virtualization) systems. LXC, Docker, and Singularity are by far the most important ones.
+:::
+
+## Properties of containerized processes {.smaller}
+
+* On Linux, containers use the host's kernel and CPU
+  - No hardware emulator, hypervisor, or guest OS
+  - Container engine uses Linux' native virtualization capabilities
+  - Processes within container are visible by host kernel
+  - Containers are portable within limits determined by kernel version dependencies
+  - Hosts can run 100s of containers
+&nbsp;
+![](images/docker-for-mac.png){fig-align="right" width="30%" style="float: right"}
+<br/><br/>
+* On Windows and macOS, requires a Linux VM 
+  - Part of the Docker installation (uses WSL on Windows; LinuxKit / Hypervisor Framework on macOS)
+  - Unsupported by Singularity
+
+::: aside
+Figure modified from [Gianluca Quercini, Cloud computing -- Docker Primer](https://gquercini.github.io/courses/cloud-computing/references/docker-primer/)
+:::
+
+## Container terminology
+
+<img src="images/docker-architecture.png" width="80%"/>
+
+::: aside
+From [ELIXIR containers nextflow: Docker](https://biocorecrg.github.io/ELIXIR_containers_nextflow/docker.html)
+:::
+
+## Singularity: Containers for HPC
+
+* HPC systems are shared computing environments
+  - Docker daemon runs as root, processes within container can run as root
+  - Not permissible on a shared computing environment
+* Singularity does not require elevated privileges
+  - Launcher run by user, not a daemon run by root
+  - Processes inside container run as same user as outside
+* Singularity containers can be built (bootstrapped) from (many) Docker container images
+  - Most scientific software containers are compatible
+
+## Singularity architecture vs Docker
+
+![](images/singularity_architecture.png)
+
+::: aside
+From [ELIXIR containers nextflow: Introduction to Singularity](https://biocorecrg.github.io/ELIXIR_containers_nextflow/singularity.html)
+:::
+
+## Containerization re: Reproducibility
+
+* Dependency Hell:
+  - all dependencies are pre-built into the container image
+* Imprecise Documentation:
+  - Container definition includes full installation commands
+  - Simple text file, lends itself to version control
+* Code rot
+  - Installation can dictate exact versions
+  - Image spec. can include version tag ("latest" is default) 
+  - Can archive container image for perpetuity
+
+## Low barrier to adoption
+
+Container definition files are simple text files:
+```docker
+FROM ubuntu:20.04
+
+# formerly LABEL maintainer="john.bradley@duke.edu"
+LABEL org.opencontainers.image.authors="john.bradley@duke.edu"
+
+# picard requires java
+RUN apt-get update && apt-get install -y \
+  wget \
+  openjdk-8-jre-headless
+
+# Installs fastqc from compiled java distribution into /opt/FastQC
+ENV PICARD_VERSION="2.10.7"
+ENV PICARD_URL https://github.com/broadinstitute/picard/releases/download/${PICARD_VERSION}/picard.jar
+
+WORKDIR /opt/picard
+RUN wget $PICARD_URL
+
+CMD ["java", "-jar", "picard.jar"]
+```
+
+## Low barrier to reuse
+
+* As simple text files, container definition files can be easily shared, collaboratively developed, and maintained using version control.
+* For sharing ready-to-use container images, a number of registries exist, including
+  - [Docker Hub](https://hub.docker.com/)
+  - [Quay.io](https://quay.io)
+  - [GitHub Packages](https://ghcr.io) Repository (includes container images)
+  - Gitlab container registry (gitlab-registry.oit.duke.edu for Duke OIT's Gitlab installation)
+
+## (Note) Container images are layered
+
+* Container file system is a [union mount](https://en.wikipedia.org/wiki/Union_mount)
+  - [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) supported by Linux kernel since 2014
+  - Allows layering image content
+  - Each command in the definition creates a layer
+  - Layers are cached for image builds and pulls
+* [Best practices for container definition](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/) include controlling layer cache invalidation
+
+## (Note) Multi-stage builds 
+
+* Build layers are read-only
+  - Deleting files from a preceding layer will not delete them from the image
+* Multi-stage builds^[References for [Docker](https://docs.docker.com/build/building/multi-stage/) and [Singularity](https://docs.sylabs.io/guides/latest/user-guide/definition_files.html#multi-stage-builds)]
+  - Multiple container builds in one container definition
+  - Use to retain build products but not the software environment needed to create them (which can be large)
+
+## (Note) Build docker, run singularity
+
+* Building Docker images typically more flexible
+  - No Singularity Desktop version for Windows or macOS (requires Linux VM instead)
+  - `singularity build` normally requires `sudo` privileges
+* Singularity can use (most) Docker images directly
+  - Can download and run in one step:
+    ```shell
+    $ singularity run docker://<docker_url> <cmd>
+    ```
+* Use `--fakeroot` for `singularity build` in a non-privileged environment
+
+## Resources
+
+* [Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
+* [Docker command line reference](https://docs.docker.com/engine/reference/commandline/cli/)
+* [Singularity file reference](https://docs.sylabs.io/guides/latest/user-guide/definition_files.html)
+* [Singularity command line reference](https://docs.sylabs.io/guides/latest/user-guide/cli.html)
