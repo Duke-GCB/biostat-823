@@ -327,7 +327,7 @@ erDiagram
 erDiagram
     Instructor        ||--|{ Lesson : teaches
     Course            ||--|{ Lesson : "consists of"
-    Room              ||--o{ Course : "used for"
+    Room              |o--o{ Course : "used for"
     Instructor {
       string  Name
       string  Email
