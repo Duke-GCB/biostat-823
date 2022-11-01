@@ -1,0 +1,359 @@
+---
+title: "Biostat 823 - Relational data modeling"
+author: "Hilmar Lapp"
+institute: "Duke University, Department of Biostatistics & Bioinformatics"
+date: "Fall 2022"
+format:
+  revealjs:
+    slide-number: true
+editor: visual
+knitr:
+  opts_chunk:
+    echo: TRUE
+---
+
+## Relational data model
+
+-   Relational models are based on first-order predicate logic
+-   Entities and predicates
+-   Relations (tables) and tuples (rows)
+
+## Entity-relationship (E-R) model
+
+-   Entities are identifiable things of interest in the domain of interest
+    -   Entities have attributes (properties):
+    -   The set of attributes that uniquely identify the entity is the *natural key*.
+-   Relationships between entities
+
+## Logical vs Physical E-R model I
+
+:::: {.columns}
+
+::: {.column width="50%"}
+Logical data model:
+
+-   All entities (including keys), their attributes, and relationships (including cardinalities)
+-   Independent of database imnplementation
+-   Abstract model
+:::
+
+::: {.column width="50%"}
+Physical data model:
+
+-   Usually derived from the logical model
+-   For instantiation in a relational database manage-ment system (RDBMS)
+-   Includes indexes and constraints
+-   Can derive multiple physical data models from same logical model
+:::
+
+::::
+
+## Relationship cardinalities
+
+-   {0,1}:1
+-   {0,1}:*n*
+-   *n*:*n*
+
+## Crow's foot notation {.smaller}
+
+| Description                   | Symbol |
+|-------------------------------|--------|
+| Ring and dash: Minimum zero, maximum one (optional) | <img style="vertical-align: bottom" src="images/SQL/ring-and-dash.png"/> |
+| Dash and dash: Minimum one, maximum one (mandatory) | <img style="vertical-align: bottom" src="images/SQL/dash-and-dash.png"/> |
+| Ring and crow's foot: Minimum zero, maximum many (optional) | <img style="vertical-align: bottom" src="images/SQL/ring-and-crow.png"/> |
+| Dash and crow's foot: Minimum one, maximum many (mandatory) | <img style="vertical-align: bottom" src="images/SQL/dash-and-crow.png"/> |
+
+::: aside
+Adapted from [Visio: Create a diagram with crow's foot database notation](https://support.microsoft.com/en-us/office/create-a-diagram-with-crow-s-foot-database-notation-1ec22af9-3bd3-4354-b2b5-ed5752af6769)
+:::
+
+## Examples for Crow's foot notation
+
+::: {layout-ncol=5}
+
+```{mermaid}
+erDiagram
+    Instructor ||--o| Course : teaches
+```
+```{mermaid}
+erDiagram
+    Instructor ||--|| Course : teaches
+```
+```{mermaid}
+erDiagram
+    Instructor ||--o{ Course : teaches
+```
+```{mermaid}
+erDiagram
+    Instructor }|--|{ Course : teaches
+```
+:::
+
+## Resolving _n_:_n_ relationships
+
+RDBMSs do not directly support _n_:_n_ relationships between two tables, so they must be resolved for a physical E-R model.
+
+::: {layout-ncol=3}
+
+```{mermaid}
+%%| fig-cap: "Logical model"
+erDiagram
+    Instructor }|--|{ Course : teaches
+```
+```{mermaid}
+%%| fig-cap: "Physical model, using [associative table](https://en.wikipedia.org/wiki/Associative_entity)"
+erDiagram
+    INSTRUCTOR ||--|{ INSTRUCTOR_TO_COURSE : teaches
+    COURSE     ||--|{ INSTRUCTOR_TO_COURSE : "taught by"
+```
+```{mermaid}
+%%| fig-cap: "Logical and/or physical model"
+erDiagram
+    Instructor ||--|{ Lesson : teaches
+    Course     ||--|{ Lesson : "consists of"
+```
+
+:::
+
+## Strong vs weak entities
+
+```{mermaid}
+erDiagram
+    Instructor ||--|{ Lesson : teaches
+    Course     ||--|{ Lesson : "consists of"
+    Instructor {
+      string Name
+      string Email PK
+    }
+    Course {
+      string Title
+      string Code PK
+    }
+    Lesson {
+      string Name
+    }
+```
+
+* `Instructor` and `Course` exist on their own, identifiable by attributes of their own: _strong_ entities
+* `Lesson` exists only within the context of a `Course`, not identifiable on its own: _weak_ entity
+
+## Foreign Keys
+
+::: {layout-ncol=2}
+
+```{mermaid}
+%%| fig-cap: "Foreign keys implicit"
+erDiagram
+    Instructor ||--|{ Lesson : teaches
+    Course     ||--|{ Lesson : "consists of"
+    Instructor {
+      string  Name
+      string  Email PK
+    }
+    Course {
+      string Title
+      string Code PK
+    }
+    Lesson {
+      string Name
+    }
+```
+```{mermaid}
+%%| fig-cap: "Explicit foreign keys and synthetic (a.k.a. surrogate) primary keys"
+erDiagram
+    Instructor ||--|{ Lesson : teaches
+    Course     ||--|{ Lesson : "consists of"
+    Instructor {
+      integer Instructor_ID PK
+      string  Name
+      string  Email PK
+    }
+    Course {
+      integer Course_ID PK
+      string Title
+      string Code PK
+    }
+    Lesson {
+      string Name
+      integer Instructor_ID FK
+      integer Course_ID FK
+    }
+```
+
+:::
+
+## Entity relationships can be self-referential
+
+```{mermaid}
+erDiagram
+    Instructor ||--|{ Lesson : teaches
+    Course     ||--|{ Lesson : "consists of"
+    Course     |o--o{ Course : "required by"
+    Instructor {
+      integer Instructor_ID PK
+      string  Name
+      string  Email PK
+    }
+    Course {
+      integer Course_ID PK
+      string Title
+      string Code PK
+      integer Req_Course_ID FK
+    }
+    Lesson {
+      string Name
+      integer Instructor_ID FK
+      integer Course_ID FK
+    }
+```
+
+## E-R models can be very complex
+
+* Consider for example the [BioSQL ERD](https://github.com/biosql/biosql/blob/master/doc/biosql-ERD.pdf)
+  - Represents entries in biological sequence databases (such as GenBank), their key-value annotations, cross-references, and feature annotations (which themselves have key-value annotations)
+
+## Database normalization
+
+* Goal is to minimize data redundancy, improve data integrity, prevent anomalies
+  - Enable a database to enforce data integrity through uniqueness, not-null, and referential integrity constraints
+* Formalized as _normal forms_
+  - [1st](https://en.wikipedia.org/wiki/First_normal_form), [2nd](https://en.wikipedia.org/wiki/Second_normal_form), and [3rd](https://en.wikipedia.org/wiki/Second_normal_form) Forms are most widely practiced
+  - Stated initially by Codd in 1970 (1NF) and 1971 (2NF, 3NF)
+
+## First normal form
+
+> A relation is in first normal form _iff_ no attribute domain has relations as elements.
+
+Attribute values must be "atomic" (not tables, arrays, lists, etc).
+
+::: {layout-ncol=2}
+
+```{mermaid}
+%%| fig-cap: "Unnormalized"
+erDiagram
+    Instructor {
+      string  Name
+      string  Email
+      array  Course_Lessons
+    }
+```
+```{mermaid}
+%%| fig-cap: "Normalized to 1NF"
+erDiagram
+    Instructor        ||--|{ Course_Lesson : teaches
+    Instructor {
+      string  Name
+      string  Email
+    }
+    Course_Lesson {
+      string Course_Name
+      string Lesson_Name
+    }
+```
+
+:::
+
+## Second normal form {.smaller}
+
+> A relation is in 2NF _iff_ it is in 1NF and it does not have any non-prime attribute functionally dependent on any proper subset of any candidate key of the relation.
+
+If any table has a composite natural key, no column in that table depends on only a part of the composite key. 
+
+::: {layout-ncol=2}
+
+```{mermaid}
+%%| fig-cap: "In 1NF but not 2NF"
+erDiagram
+    Instructor        ||--|{ Course_Lesson : teaches
+    Instructor {
+      string  Name
+      string  Email
+    }
+    Course_Lesson {
+      string Course_Name
+      string Lesson_Name
+      string Room
+    }
+```
+```{mermaid}
+%%| fig-cap: "Normalized to 2NF"
+erDiagram
+    Instructor        ||--|{ Lesson : teaches
+    Course            ||--|{ Lesson : "consists of"
+    Instructor {
+      string  Name
+      string  Email
+    }
+    Course {
+      string Name
+      string Room
+    }
+    Lesson {
+      string Name
+    }
+```
+
+:::
+
+## Third normal form {.smaller}
+
+> A relation R is in 3NF _iff_ it is in 2NF and every non-prime attribute of R is non-transitively dependent on every key of R.
+
+Any attribute that is not part of a natural key depends **directly** on every key.
+
+::: {layout-ncol=2}
+
+```{mermaid}
+%%| fig-cap: "In 2NF but not 3NF"
+erDiagram
+    Instructor        ||--|{ Lesson : teaches
+    Course            ||--|{ Lesson : "consists of"
+    Instructor {
+      string  Name
+      string  Email
+    }
+    Course {
+      string Name
+      string Semester
+      string Room
+      string Room_Address
+    }
+    Lesson {
+      string Name
+    }
+```
+```{mermaid}
+%%| fig-cap: "Normalized to 3NF"
+erDiagram
+    Instructor        ||--|{ Lesson : teaches
+    Course            ||--|{ Lesson : "consists of"
+    Room              ||--o{ Course : "used for"
+    Instructor {
+      string  Name
+      string  Email
+    }
+    Course {
+      string Name
+      string Semester
+    }
+    Room {
+      string Name
+      string Address
+    }
+    Lesson {
+      string Name
+    }
+```
+:::
+
+## Logical vs Physical E-R model II {.smaller}
+
+| Logical data model   | Physical data model |
+|----------------------| --------------------|
+| Entities and their attributes | Tables and columns |
+| Natural keys (identifying attributes) | Unique key constraints |
+| | Surrogate primary keys, auto-increment mechanism |
+| Relationships | Foreign keys; associative tables for _n_:_n_ relationships |
+| Relationship cardinalities | Foreign key and `NOT NULL` constraints |
+| | Indexes |
+
