@@ -12,7 +12,10 @@ editor: visual
 <!-- produces main section 1 -->
 ## syllabus {.hidden} 
 
+
 ## Syllabus {.unnumbered}
+
+* [GitHub repository](https://github.com/Duke-GCB/biostat-823) for lesson slides
 
 ### [Literate Programming](Lesson-01.html)
 ### [Containerization](Lesson-02.html)
