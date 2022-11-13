@@ -1,0 +1,286 @@
+---
+title: "Biostat 823 - Recursive data structures in SQL"
+author: "Hilmar Lapp"
+institute: "Duke University, Department of Biostatistics & Bioinformatics"
+date: "Fall 2022"
+format:
+  revealjs:
+    slide-number: true
+editor: visual
+knitr:
+  opts_chunk:
+    echo: TRUE
+---
+
+## Recursive data structure
+
+* Trees and more generally Directed Acyclic Graphs (DAGs) are commonly occurring recursive data structures
+  - Subject classification systems, hierarchical codes, etc
+  - Biological taxonomies (species classifications)
+  - Ancestry trees, phylogenetic trees
+  - Ontologies
+
+## Example: Tree (a special case of DAG)
+
+::: {layout-ncol=2 layout-valign="bottom"}
+
+![Edges = Child to parent node](images/Recursion/Tree.png)
+
+```{mermaid}
+%%| fig-cap: "Relational model: Adjacency table using self-referential FK\n(Root node is identified by `Parent_ID IS NULL`.)"
+erDiagram
+    Node |o--o{ Node : "parent node"
+    Node {
+      integer ID PK
+      string  Label
+      integer Parent_ID FK
+    }
+```
+:::
+
+## Recursion is through relationship
+
+* Define _x_ ancestor of _y_ as $anc(x,y) := \{ parent(x, y)\ \cup\ parent(x, anc(z, y)) \}$
+  - Node $x$ is an ancestor of node $y$ iff $x$ is a parent of $y$, or if $x$ is a parent of $z$ and $z$ is an ancestor of $y$.
+* Examples of queries requiring recursion:
+  - List all ancestors of node $x$.
+  - List all nodes for which node $x$ is an ancestor.
+  - List the _common_ (or _distinct_) ancestors of nodes $x$ and $y$.
+  - Obtain the _most recent_ common ancestor (MRCA) of nodes $x$ and $y$ (ancestor with shortest distance).
+
+## Options for enabling recursive queries
+
+1. Create and then query transitive closure ("path") table
+2. Implement and then query nested sets enumeration (only for trees, not graphs)
+3. Use recursive SQL SELECT query (if RDBMS supports it)
+
+::: aside
+If the SQL database is accessed through a programming language environment, the recursion could of course be handled there, though at the potentially prohibitive expense of potentially 100s or more of queries.
+:::
+
+## Transitive closure E-R model
+
+```{mermaid}
+%%| fig-cap: "E-R Diagram of adjacency table with path table"
+erDiagram
+    Node |o--o{ Node : "parent node"
+    Node ||--o{ Node_Path : "ancestor"
+    Node ||--o{ Node_Path : "node"
+    Node {
+      integer ID PK
+      string  Label
+      integer Parent_ID FK
+    }
+    Node_Path {
+      integer Node_ID FK
+      integer Ancestor_ID FK
+      integer Path_Length
+    }
+```
+
+## Transitive closure computation (I)
+
+:::: {.columns}
+
+::: {.column width="32%"}
+```{mermaid}
+%%| fig-cap: "E-R Diagram of adjacency table with path table"
+erDiagram
+    Node |o--o{ Node : "parent node"
+    Node ||--o{ Node_Path : "ancestor"
+    Node ||--o{ Node_Path : "node"
+    Node {
+      integer ID PK
+      string  Label
+      integer Parent_ID FK
+    }
+    Node_Path {
+      integer Node_ID FK
+      integer Ancestor_ID FK
+      integer Path_Length
+    }
+```
+:::
+
+::: {.column width="65%"}
+Algorithm:
+
+1. Add $anc(x,y,1)\ \\\forall\ (x,y) \in \{ parent(x,y) \}$
+2. Let _l_ = 1
+   a. Add $anc(x,y,l+1)\ \\\forall (x,y) \in \{anc(z,y,l) \land parent(x,z)\}$
+   b. $l = l + 1$
+   c. Repeat (a) unless no tuples added.
+
+:::
+
+::::
+
+## Transitive closure computation (II)
+
+:::: {.columns}
+
+::: {.column width="32%"}
+```{mermaid}
+%%| fig-cap: "E-R Diagram of adjacency table with path table"
+erDiagram
+    Node |o--o{ Node : "parent node"
+    Node ||--o{ Node_Path : "ancestor"
+    Node ||--o{ Node_Path : "node"
+    Node {
+      integer ID PK
+      string  Label
+      integer Parent_ID FK
+    }
+    Node_Path {
+      integer Node_ID FK
+      integer Ancestor_ID FK
+      integer Path_Length
+    }
+```
+:::
+
+::: {.column width="68%"}
+
+Transitive closure computation in SQL:
+```sql
+INSERT INTO Node_Path
+      (Node_ID, Ancestor_ID, Path_Length)
+SELECT ID, Parent_ID, 1 FROM Node
+WHERE Parent_ID IS NOT NULL;
+```
+```sql
+-- Repeat until no more rows inserted
+INSERT INTO Node_Path
+       (Node_ID, Ancestor_ID, Path_Length)
+SELECT p.Node_ID, n.Parent_ID, p.Path_Length+1
+FROM Node_Path p 
+     JOIN Node n ON (p.Ancestor_ID = n.ID)
+WHERE n.Parent_ID IS NOT NULL
+AND NOT EXISTS (
+  SELECT 1 FROM Node_Path pp
+  WHERE pp.Node_ID = p.Node_ID
+  AND pp.Ancestor_ID = n.Parent_ID
+  -- Note that for graphs we would also have to
+  -- test path length!
+)
+```
+:::
+
+::::
+
+## Transitive closure visualized
+
+![Node relationships added by transitive closure in <span style="color: blue">blue</span>](images/Recursion/Tree with paths.png)
+
+## Nested Set Enumeration
+
+We add two attributes to a Node, a _left_ and a _right_ number:
+
+![Same tree as before, but nodes with _left_ and _right_ (integer) values added](images/Recursion/Tree with leftright.png)
+
+## Nested Set Computation (I)
+
+The _left_ and _right_ nested set values are computed using recursive depth-first traversal of the nodes in the tree structure:
+```Python
+def nestedSet(node, nestedNumber):
+  node.left = nestedNumber
+  for child in node.children():
+    nestedNumber = nestedSet(child, nestedNumber + 1)
+  node.right = nestedNumber + 1
+  return node.right
+
+nestedSet(rootNode, 1)
+```
+
+## Nested Set Computation (II)
+
+![Tree with computed Nested Set values](images/Recursion/Tree with nestedset.png)
+
+## Recursive SQL SELECT
+
+* Oracle introduced a non-standard `CONNECT BY` clause in the 1980s
+* [Common Table Expressions](https://en.wikipedia.org/wiki/Hierarchical_and_recursive_queries_in_SQL#Common_table_expression) (CTE) enabling recursive queries introduced in the SQL:1999 standard
+  - In essence, CTEs can be seen as temporary named result sets
+  - Supported by many popular RDBMSs (including MySQL, PostgreSQL, Sqlite) in their more modern versions
+
+## Recursive CTE example: factorial() {.smaller .scrollable}
+
+```{r, setupSQLite, include=FALSE}
+library(RSQLite)
+library(DBI)
+db <- dbConnect(RSQLite::SQLite(), "data/ncbi20170203.db")
+
+knitr::opts_chunk$set(connection = "db")
+```
+
+
+```{sql, label="recursive1"}
+WITH RECURSIVE temp (n, factorial) AS (
+       SELECT 0, 1 -- Initial Subquery
+       UNION ALL
+       -- Recursive Subquery
+       SELECT n+1, (n+1)*factorial
+       FROM   temp
+       WHERE  n < 9
+)
+SELECT * FROM temp;
+```
+
+## Transitive closure using CTE (I) {.smaller .scrollable} 
+
+```{sql, label="recursive2", max.print=NA}
+WITH RECURSIVE Node_Path (Node_ID, Ancestor_ID, Path_Len) AS (
+       SELECT ID, Parent_ID, 1 -- Initial Subquery
+       FROM   Node
+       WHERE  Name = 'Homo sapiens'
+       UNION ALL
+       -- Recursive Subquery
+       SELECT Node_ID, p.Parent_ID, Path_Len + 1
+       FROM   Node AS p JOIN Node_Path ON (p.ID = Node_Path.Ancestor_ID)
+)
+SELECT n.ID, n.Name, a.ID, a.Name, np.Path_Len
+FROM Node_Path np JOIN Node AS n ON (np.Node_ID = n.ID)
+     JOIN Node AS a ON (np.Ancestor_ID = a.ID)
+ORDER BY np.Path_Len;
+```
+
+## Transitive closure using CTE (II) {.smaller .scrollable} 
+
+```{sql, label="recursive3", max.print=NA}
+WITH RECURSIVE Node_Path (Node_ID, Ancestor_ID, Path_Len) AS (
+       SELECT ID, Parent_ID, 1 -- Initial Subquery
+       FROM   Node
+       WHERE  Name IN ('Homo sapiens', 'Gallus gallus')
+       UNION ALL
+       -- Recursive Subquery
+       SELECT Node_ID, p.Parent_ID, Path_Len + 1
+       FROM   Node AS p JOIN Node_Path ON (p.ID = Node_Path.Ancestor_ID)
+)
+SELECT a.ID, a.Name, np1.Path_Len, np2.Path_Len
+FROM Node_Path AS np1 JOIN Node AS a ON (np1.Ancestor_ID = a.ID)
+     JOIN Node_Path AS np2 ON (np1.Ancestor_ID = np2.Ancestor_ID)
+WHERE np1.Node_ID < np2.Node_ID;
+```
+
+## Transitive closure using CTE (III) {.smaller .scrollable} 
+
+```{sql, label="recursive4", max.print=NA}
+WITH RECURSIVE Node_Path (Node_ID, Ancestor_ID, Path_Len) AS (
+       SELECT ID, Parent_ID, 1 -- Initial Subquery
+       FROM   Node
+       WHERE  Name IN ('Homo sapiens', 'Gallus gallus')
+       UNION ALL
+       -- Recursive Subquery
+       SELECT Node_ID, p.Parent_ID, Path_Len + 1
+       FROM   Node AS p JOIN Node_Path ON (p.ID = Node_Path.Ancestor_ID)
+       WHERE  p.Parent_ID IS NOT NULL
+)
+SELECT a.ID, a.Name, group_concat(n.Name,', ') AS Common_Ancestor_Of, 
+       MIN(np.Path_Len) AS Min_Path_Len
+FROM Node_Path AS np
+     JOIN Node AS a ON (np.Ancestor_ID = a.ID)
+     JOIN Node AS n ON (np.Node_ID = n.ID)
+GROUP BY a.ID, a.Name
+HAVING COUNT(n.Name) > 1
+ORDER BY Min_Path_Len;
+```
