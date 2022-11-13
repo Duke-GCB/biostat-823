@@ -1,0 +1,25 @@
+digraph G {
+    edge [dir=back]
+    node [shape=Mrecord]
+    #splines=lines
+
+    A [label="\ 1 | <a> A | 19"]
+    B [label="\ 2  | <b> B | 12"]
+    C [label="13 | <c> C | 18"]
+    D [label="\ 3 | <d> D | \ 4"]
+    E [label="\ 5 | <e> E | 11"]
+    F [label="14 | <f> F | 15"]
+    G [label="16 | <g> G | 17"]
+    H [label="\ 7 | <h> H | \ 8"]
+    I [label="\ 9 | <i> I | 10"]
+
+    A:a:sw -> B:b
+    B:b:sw -> D:d;
+    B:b -> E:e;
+    E:e:sw -> H:h;
+    A:a:se -> C:c
+    C:c -> F:f;
+    C:c:se -> G:g;
+    E:e:se -> I:i;
+    
+}

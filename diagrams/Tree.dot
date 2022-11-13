@@ -1,0 +1,23 @@
+digraph G {
+    edge [dir=back]
+    splines=lines
+
+    A -> B -> D;
+    B -> E -> H;
+    A -> C -> F;
+    C -> G;
+    E -> I;
+    
+    subgraph {
+        edge [color=blue]
+        
+        A -> D;
+        A -> E;
+        A -> H;
+        A -> I;
+        A -> F;
+        A -> G;
+        B -> H;
+        B -> I;
+    }
+}
