@@ -1,0 +1,222 @@
+---
+title: "Biostat 823 - Web Ontology Language"
+author: "Hilmar Lapp"
+institute: "Duke University, Department of Biostatistics & Bioinformatics"
+date: "Fall 2022"
+format:
+  revealjs:
+    slide-number: true
+knitr:
+  opts_chunk:
+    echo: TRUE
+---
+
+## OWL2: History {.smaller}
+
+* Predecessors and major influences
+  - 2000-2001 DARPA Agent Markup Language (DAML) and Ontology Inference Layer (OIL) ([DAML+OIL](https://www.w3.org/TR/daml+oil-reference/))
+  - 2000-2004 Resource Description Framework Schema ([RDFS](https://en.wikipedia.org/wiki/RDF_Schema))
+  - 2001-2004 W3C Web-Ontology Working Group
+* Web-Ontology Language:
+  - [OWL](https://www.w3.org/TR/owl-ref/): W3C recommended standard in 2004
+  - [OWL2](https://www.w3.org/TR/owl2-overview/): W3C recommended standard in 2009
+* Web-native: all identifiers are IRIs^[Internationalized Resource Identifier (IRI) is a Uniform Resource Identifier (URI) that allows international characters. URLs are URIs that locate resources.]
+
+## OWL2: Rich ecosystem
+
+* Thriving community of ontology editors, semantic engineers, data scientists, and software developers
+* [100s of ontologies](https://obofoundry.org) covering various domains across biology and biomedicine
+* Open-source software tooling ecosystem:
+  - Protégé ontology editor
+  - Automatic reasoners
+  - Command-line tooling
+  - Ontology development kit libraries and tools
+
+## OWL2: Terminology vs DL and FOL {.smaller}
+
+* OWL and OWL2 are Description Logics (DLs), which are a fragment of FOL.
+
+| FOL        | DL         | OWL        | Example    |
+|------------|------------|------------|------------|
+| constant         | individual | individual | 'my hand', 'Durham, NC'
+| unary predicate  | concept    | class      | 'manus (hand)', 'city'
+| binary predicate | role       | property   | 'part of', 'has parent'
+
+* Individuals, classes, and properties are called _entities_ in OWL/OWL2.
+* Properties hold between individuals, _not_ classes
+  - Classes can have _property restrictions_, using existential or universal quantification, or specific cardinality.
+
+::: aside
+Individuals and classes are sometimes referred as _particulars_ and _universals_, respectively. Entities, and in particular classes, are often referred to as _terms_.
+:::
+
+## OWL2 constructs vs DL notation (I) {.smaller}
+
+_C_ and _D_ are concepts. If $a\ R\ b$ then _b_ is connnected by R (_"R-successor"_).
+
+| DL notation | Concept             | OWL2 (Functional Syntax)   |
+|---------|-------------------------|----------------------------|
+| $\top$  | Top concept    |`owl:Thing`        |
+| $\bot$  | Bottom concept | `owl:Nothing`      |
+| $C \sqcap D$ | Conjunction of concepts C and D | ObjectIntersectionOf( C D ) |
+| $C \sqcup D$ | Disjunction of concepts C and D | ObjectUnionOf( C D )|
+| $\neg C$     | Complement of concept C    | ObjectComplementOf( C ) |
+| $\forall R.C$ | All connected by R are in C (universal quantification) | ObjectAllValuesFrom( R C ) |
+| $\exists R.C$ | Some connected by R are in C (existential quantification) | ObjectSomeValuesFrom( R C ) |
+
+Non-atomic concept definitions are called _class expressions_.
+
+## OWL2 constructs vs DL notation (II) {.smaller}
+
+_C_ and _D_ are concepts, _R_ is a role (property), _a_ and _b_ are individuals.
+
+| DL notation | Axiom | OWL2 (Functional Syntax)      | Semantics |
+|--|---------------|--------------------------------------------|-----|
+| $C \sqsubseteq D$ | Concept inclusion | SubClassOf( C D ) | $\forall a\in C \rightarrow a\in D$ |
+| $C \sqcap D \sqsubseteq \bot$ | Concept exclusion | DisjointClasses( C D ) | $\not\exists a\!: a\in C \wedge a\in D$
+| $C \equiv D$ | Concept equivalency | EquivalentClasses( C D ) | $\forall (a\in C, b\in D) \rightarrow\\ a\in D \wedge b \in C$
+| $C(a)$ | Concept member | ClassAssertion( C a ) | $a \in C$ |
+| $R(a,b)$ | Role | ObjectPropertyAssertion( R a b ) |
+| $R(a,\!'val')$ | Data value | DataPropertyAssertion(R a "val") |
+
+_C_ and _D_ can be atomic concepts or class expressions. If the left hand side in a concept inclusion axiom is a class expression, it is called a General Class Inclusion (GCI) axiom.
+
+## OWL2 property axioms {.smaller}
+
+_C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ are individuals.
+
+| DL | Role ... | OWL2 (Functional Syntax)      | Semantics |
+|--|---------------------|--------------------------------------------|-----|
+| $R \sqsubseteq S$ | inclusion | SubObjectPropertyOf( R S ) | $\forall (a,b):\\ R(a,b) \rightarrow S(a,b)$ |
+| $R \equiv S$ | equivalency | EquivalentObjectProperties( R S ) |
+| $R \equiv S^-$ | inverse | InverseObjectProperty( R S ) | $\forall (a,b):\\ S(a,b) \rightarrow R(b,a)$ |
+| $R \circ S \sqsubseteq P$ | chain | SubObjectPropertyOf( ObjectPropertyChain( R S ) P) | $\forall (a,b): R(a,z) \wedge S(z,b)\\ \rightarrow P(a,b)$
+|  | Functional role | FunctionalObjectProperty( R ) | $\forall (a,b,c): R(a,b) \wedge R(a,c)\\ \rightarrow b \equiv c$
+|  | Inverse functional | InverseFunctionalObjectProperty( R ) | $\forall (a,b,c): R(a,b) \wedge R(c,b)\\ \rightarrow a \equiv c$
+
+* Properties can also be defined as (ir)reflexive, (a)symmetric, or transitive
+
+## Domain and Range constraints
+
+* Object property domain axiom:
+
+  ObjectPropertyDomain( R C )
+  - Semantics: $\forall a: R(a,\cdot) \rightarrow C(a)$
+
+* Object property range axiom:
+
+  ObjectPropertyRange( R D )
+  - Semantics: $\forall a: R(\cdot,a) \rightarrow D(a)$
+
+## Axioms about individuals vs classes {.smaller}
+
+* OWL properties apply to individuals, both as subject and object:
+
+  'my left index finger' :part_of 'my left hand'
+
+* For classes ("universals"), must use property restriction ($\sqsubseteq\exists part\_of.hand$):
+
+  'index finger' _SubClassOf_ :part_of _some_ 'hand'^[This and the below expression use [OWL-Manchester Syntax](https://www.w3.org/TR/owl2-manchester-syntax/), as opposed to [OWL Functional Syntax](https://www.w3.org/TR/owl-syntax/).]
+  
+  or more specifically ($\sqsubseteq anatomical\_structure \sqcap\exists part\_of.hand$):
+  
+  'index finger' _SubClassOf_ 'anatomical structure' _and_ :part_of _some_ 'hand'
+  
+* Note that existential quantification is "assymmetric", and the reverse with the inverse property does not necessarily follow:
+
+  $hand\not\sqsubseteq\exists has\_part.index\_finger$
+
+## Satisfiability and consistency {.smaller}
+
+* In formal logic, a formula is satisfiable iff there is some assignment of values to variables that make it true.
+* For ontologies, a class is unsatisfiable if no individual can exist that is a member of the class.
+  - C is unsatisfiable iff $C\sqsubseteq\bot$ (in OWL this is `owl:Nothing`)
+  - Often this is the result of a class C being (asserted or inferred as) a subclass of another class D and also the complement of D.
+* An ontology is inconsistent if it asserts an individual as a member of an unsatisfiable class.
+  - Most reasoners stop when encountering an inconsistency.
+
+## OWL uses Open World Assumption {.smaller}
+
+* Closed World Assumption (CWA):
+  - Facts that are not known are assumed to be false.
+  - Databases and database queries are most common example:
+    ```sql
+    SELECT Instructor_Name FROM Lesson_Instructors WHERE ...
+    ```
+    The result set is assumed to contain all values that can possibly match (i.e., that exist).
+* Open World Assumption (OWA):
+  - Facts that are not known are undefined (neither assumed true nor false).
+  - For example, an individual asserted only as a member of class C cannot be assumed as not being a member of class D (unless C and D are asserted as disjoint).
+
+## Tbox and Abox
+
+* All axioms (statements) about classes (concepts) form the Tbox, the *t*erminological component of an ontology.
+* All axioms about individuals form the Abox, the *a*ssertional component of an ontology.
+* An ontology O consists of Tbox and Abox: $O=\{\mathcal{T},\mathcal{A}\}$
+
+## Semantic entailment
+
+* An ontology semantically entails a statement $\phi$ if $\phi$ is true in _all_ models (valid interpretations) of the ontology.
+* Reasoners compute semantic entailments.
+* A reasoner is
+  - _sound_ if every semantic entailment it computes is correct; and
+  - _complete_ if it computes all possible semantic entailments.
+* To be useful, reasoners need to be both sound and complete.
+
+## Reasoning services
+
+- Semantic entailment
+- Satisfiability, consistency
+- Classification
+  * Inference of class subsumption hierarchy
+  * Inference of individuals' class membership
+- Conjunctive query answering ("DL queries")
+  ```
+  'anatomical structure' and 'part of' some 'hand'
+  ```
+- Explanation
+
+## OWL2 profiles and decidability {.smaller}
+
+* OWL/OWL2 DL:
+  - Maximum expressivity while maintaining computational completeness and decidability
+  - Allows well-performing reasoners
+  - Some restrictions that in practice are rarely relevant (individuals and classes must be distinct; some cardinality restriction constraints for transitive properties)
+* OWL2 defines several expressivity profiles: OWL2-EL, OWL2-QL, and OWL2-RL
+* OWL2-EL Profile:
+  - Decidable in polynomial time, allows for very effective reasoners
+  - Unsupported constructs include universal quantification; cardinality restrictions; disjunction; class negation; inverse, functional, (a)symmetric object properties.
+  - Supported constructs are sufficient for most bio-ontologies, including those that are very large (GO, UBERON, SNOMED-CT)
+
+## Resources: Reasoners
+
+* OWL2 DL reasoners
+  - Many based on the [Analytic Tableaux algorithm](https://en.wikipedia.org/wiki/Method_of_analytic_tableaux)
+  - [Fact++](http://owl.man.ac.uk/factplusplus/)
+  - [Hermit](https://www.cs.ox.ac.uk/isg/tools/HermiT/)
+  - [Racer](https://www.ifis.uni-luebeck.de/~moeller/racer/)
+* OWL2 EL reasoners
+  - [ELK](https://github.com/liveontologies/elk-reasoner)
+* [More complete list with details](http://owl.cs.manchester.ac.uk/tools/list-of-reasoners/)
+
+## Resources: OWL Ontologies {.smaller}
+
+- [OWL2 Primer](https://www.w3.org/TR/owl2-primer/)
+- Software
+  * [Protégé ontology editor](https://protege.stanford.edu)
+  * [Ontology Development Kit](https://github.com/INCATools/ontology-development-kit)
+  * [Ontology Access Kit](https://github.com/INCATools/ontology-access-kit)
+  * [ROBOT](http://robot.obolibrary.org)
+  * [OWLAPI](https://github.com/owlcs/owlapi)
+  
+## Resources: Ontologies in Bio {.smaller}
+
+- Ontologies for biology & biomedicine
+  * [OBO Ontologies](https://obofoundry.org)
+- Tutorials and Training
+  * [OBO Semantic Engineering Training](https://oboacademy.github.io/obook/)
+  * [ICBO OBO Tutorial 2022](https://oboacademy.github.io/obook/courses/icbo2022/)
+- Publications
+  * The Gene Ontology Consortium (2000). [Gene ontology: tool for the unification of biology](http://dx.doi.org/10.1038/75556). Nature Genetics, 25(1), 25–29.
+  * Dececchi TA, Balhoff JP, Lapp H, & Mabee PM (2015). [Toward Synthesizing Our Knowledge of Morphology: Using Ontologies and Machine Reasoning to Extract Presence/Absence Evolutionary Phenotypes across Studies](http://dx.doi.org/10.1093/sysbio/syv031). Systematic Biology, 64(6), 936–952.
+  * Haendel MA, Chute CG, and Robinson PN (2018) [Classification, Ontology, and Precision Medicine](https://doi.org/10.1056/NEJMra1615014). New England Journal of Medicine 379 (15): 1452–62.
