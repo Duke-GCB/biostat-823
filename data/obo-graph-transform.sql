@@ -20,7 +20,7 @@ CREATE TEMPORARY TABLE Edges_Import (
   Object_ID INTEGER NOT NULL
 );
 
-.separator 
+.separator "\t"
 .import node-labels.tsv Node_Labels_Import
 .import edge-labels.tsv Edge_Labels_Import
 .import edges.tsv Edges_Import
