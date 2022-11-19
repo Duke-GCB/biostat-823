@@ -68,7 +68,7 @@ CREATE TABLE Edge (
 -- Populate our model from the temporary import tables
 INSERT INTO Node (ID, Label, IRI)
 SELECT ID, Label, IRI FROM Edge_Labels_Import;
--- The IDs for both node and "edge" (predicate) labels start from 1,
+-- The IDs for both node and "edge" (predicate) labels start from 0,
 -- so we need to make them unique to go into the same table.
 INSERT INTO Node (ID, Label, IRI)
 SELECT ID + 1 + (SELECT MAX(ID) FROM Edge_Labels_Import), Label, IRI
