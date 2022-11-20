@@ -199,6 +199,30 @@ _C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ a
   - [ELK](https://github.com/liveontologies/elk-reasoner)
 * [More complete list with details](http://owl.cs.manchester.ac.uk/tools/list-of-reasoners/)
 
+## Symbolic and Neural AI (I) {.smaller}
+
+* AI approaches relying on formal logic knowledge representation and reasoning fall under _Symbolic AI_.
+  - _Symbolic AI_ stands in contrast to _neural_ AI approaches (ANNs, Deep Learning, etc; also called "connectionist")
+* Neuro-symbolic AI approaches attempt to integrate these to complement each other
+
+| Issue         | Symbolic AI   | Neural AI    |
+|---------------|---------------|--------------|
+| Decisions        | Self-explanatory | Black box |
+| Expert knowledge | Readily utilized | Difficult to utilize | 
+| Trainability     | Typically not    | Trainable from raw data |
+| Susceptibility to data errors | High, brittle      | Low, robust |
+| Speed            | Slow on large expressive KB     | Fast once trained |
+
+## Neuro-symbolic AI resources {.smaller}
+
+* Recent overviews:
+  - Hitzler P, Eberhart A, Ebrahimi M, Sarker MK, Zhou L. (2022). [Neuro-symbolic approaches in artificial intelligence](https://doi.org/10.1093/nsr/nwac035). Natl Sci Rev. 2022 Mar 4;9(6):nwac035.
+  - Sarker, M. K., Zhou, L., Eberhart, A., & Hitzler, P. (2022). [Neuro-symbolic artificial intelligence: Current Trends](https://daselab.cs.ksu.edu/sites/default/files/2021_AIC_NeSy.pdf). AI Communications, 34(3), 197–209.
+
+* Deep learning-based reasoners
+  - Ebrahimi, M., Eberhart, A., Bianchi, F., & Hitzler, P. (2021). [Towards bridging the neuro-symbolic gap: deep deductive reasoners](https://daselab.cs.ksu.edu/sites/default/files/APIN2021.pdf). Applied Intelligence, 51(9), 6326–6348.
+  - Tang, Z., Hinnerichs, T., Peng, X., Zhang, X., & Hoehndorf, R. (2022). [FALCON: Sound and Complete Neural Semantic Entailment over $\mathcal{ALC}$ Ontologies](http://arxiv.org/abs/2208.07628). arXiv:2208.07628 [cs.AI].
+
 ## Resources: OWL Ontologies {.smaller}
 
 - [OWL2 Primer](https://www.w3.org/TR/owl2-primer/)
@@ -220,3 +244,9 @@ _C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ a
   * The Gene Ontology Consortium (2000). [Gene ontology: tool for the unification of biology](http://dx.doi.org/10.1038/75556). Nature Genetics, 25(1), 25–29.
   * Dececchi TA, Balhoff JP, Lapp H, & Mabee PM (2015). [Toward Synthesizing Our Knowledge of Morphology: Using Ontologies and Machine Reasoning to Extract Presence/Absence Evolutionary Phenotypes across Studies](http://dx.doi.org/10.1093/sysbio/syv031). Systematic Biology, 64(6), 936–952.
   * Haendel MA, Chute CG, and Robinson PN (2018) [Classification, Ontology, and Precision Medicine](https://doi.org/10.1056/NEJMra1615014). New England Journal of Medicine 379 (15): 1452–62.
+  
+## Other resources
+
+* Nicole Vasilevsky's [curated list of ontology resources](https://nicolevasilevsky.github.io/ontology_resources/)
+* Michael DeBellis (2021) [A Practical Guide To Building OWL Ontologies Using Protégé 5.5 and Plugins](https://drive.google.com/file/d/1UqI19JiGnJwzKx_JQ7qRAz7bmCzyqZpj/view). Edition 1.4.
+  - [Pizza Ontology](https://github.com/owlcs/pizza-ontology/blob/master/pizza.owl)
