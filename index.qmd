@@ -24,3 +24,4 @@ editor: visual
 ### [Data Warehousing](Lesson-05.html)
 ### [Recursive Data Structures in SQL](Lesson-06.html)
 ### [Web Ontology Language](Lesson-7b.html)
+### [Web Ontology Language](Lesson-09.html)
