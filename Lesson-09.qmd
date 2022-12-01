@@ -1,0 +1,187 @@
+---
+title: "Biostat 823 - Semantic Similarity"
+author: "Hilmar Lapp"
+institute: "Duke University, Department of Biostatistics & Bioinformatics"
+date: "Fall 2022"
+format:
+  revealjs:
+    slide-number: true
+knitr:
+  opts_chunk:
+    echo: TRUE
+---
+
+## Semantic similarity {.smaller} 
+
+* Semantic similarity is defined as a quantitative metric between "documents", or concepts (terms) ordered in a hierarchy (such as an ontology).
+  - For concepts in a hierarchy, we can consider their textual definitions as the "documents".
+  - For text documents, we can represent these as concepts that occur in them, and then evaluate semantic similarity as between the two sets of concepts.
+  - More generally, we can consider any entity linked to a set of concepts as "documents" for evaluating their semantic similarity in this way.
+
+* Semantic similarity metrics use a Directed Acyclic Graph (DAG) representation of the concept hierarchy (such as an ontology).
+
+## Concept DAG
+
+![For evaluating semantic similarity, we use only edges representing concept inclusion (e.g., subClassOf).](images/Semsim/concept-dag.svg){fig-align="center"}
+
+## Concept DAG
+
+![To evaluate the semantic similarity between two concepts, say _M_ and _F_, we consider their induced subgraphs of subsumers.](images/Semsim/concept-dag-nodes MF.svg){fig-align="center"}
+
+## Induced subgraphs of subsumers
+
+![The induced subgraph for _M_ are _M_ and all ancestors (subsumers) of _M_, following the edges that represent concept inclusion.](images/Semsim/concept-dag-subM.svg){fig-align="center"}
+
+
+## Induced subgraphs of subsumers
+
+![The induced subgraph for _F_ is defined analogous.](images/Semsim/concept-dag-subF.svg){fig-align="center"}
+
+## Common and disjoint ancestors
+
+![The intersection of the induced subgraphs is the common ancestors (subsumers). Subtracting the intersection from the union yields the disjoint ancestors.](images/Semsim/concept-dag-subAll.svg){fig-align="center"}
+
+## Common and disjoint ancestors
+
+![_I_ and _D_ are sometimes referred to as "disjoint common subsumers", i.e., the common subsumers that do not subsume another common subsumer. ](images/Semsim/concept-dag-subAll.svg){fig-align="center"}
+
+## Pairwise semantic similarity {.smaller}
+
+* Pairwise metrics are between a pair of concepts $C_1$ and $C_2$
+* There are two major categories of pairwise metrics:
+  - Metrics that use only topology of the induced subgraphs
+    - Sometimes referred to as _Edge_-based (because they are based on edge paths)
+    - Can be computed from the concept graph alone (which is fast)
+  - Metrics that use information content (IC).
+    - Sometimes referred to as _Node_-based (because they use a property of nodes)
+    - Require a corpus against which to determine concept probabilities (which can be slow for a large and complex ontology and a large corpus, and is specific to the choice of corpus)
+
+## Subgraph topology-based metrics
+
+::: {layout-ncol=2}
+
+![Induced subgraphs](images/Semsim/concept-dag-subAll.svg)
+
+* [**Jaccard Index**](https://en.wikipedia.org/wiki/Jaccard_index)
+  $SimJ(C_1,C_2)=\frac{|S(C_1)\cap S(C_2)|}{|S(C_1)\cup S(C_2)|}$
+  
+  where _S(C)_ is the set of subsumers (induced subgraph) of concept _C_.
+  
+  For the example graph, _SimJ(M,F) = 3/8_.
+  
+* <small>Note that Jaccard index does incorporate depth through the numerator. Intuitively, two concepts deeper in the concept hierarchy should be semantically more similar than two concepts with equal path distance close to the root.</small>
+
+:::
+
+## Subgraph topology-based metrics
+
+::: {layout-ncol=2}
+
+![Induced subgraphs](images/Semsim/concept-dag-subAll.svg)
+
+* Binary vector representation of subsumer subgraphs:
+  $\mathbf{S}_C: s_i=\begin{cases}1\;\mathrm{if}\ C_i\in S(C)\\ 0\; \mathrm{otherwise}\end{cases}$
+  
+  allows using vector algebra for metric calculation:
+  
+  $SimJ(C_1,C_2)=\frac{\mathbf{S}_{C_1}\cdot\mathbf{S}_{C_2}}{||\mathbf{S}_{C_1}||^2+||\mathbf{S}_{C_2}||^2-\mathbf{S}_{C_1}\cdot\mathbf{S}_{C_2}}$
+
+* $1-SimJ$ is a proper distance metric (satisfying the triangle inequality).
+
+:::
+
+## Subgraph topology-based metrics
+
+::: {layout-ncol=2}
+
+![Induced subgraphs](images/Semsim/concept-dag-subAll.svg)
+
+* Cosine similarity:
+  $SimCos(C_1,C_2)=\frac{\mathbf{S}_{C_1}\cdot\mathbf{S}_{C_2}}{||\mathbf{S}_{C_1}||\ ||\mathbf{S}_{C_2}||}$
+
+* _1-SimCos_ is _not_ a proper distance metric (violates the triangle ineqaulity). Need to convert to normalized angle: $D_\theta(C_1,C_2) = \frac{\arccos(SimCos(C_1,C_2))}{\pi}$
+
+:::
+
+## IC-based metrics {.smaller}
+
+* _Information content_ (a.k.a. Shannon information) was first defined in information theory by [C. Shannon](https://en.wikipedia.org/wiki/Claude_Shannon):
+  - Relates information of an event to the probability of the event occurring.
+  - Formalizes the notion that the less probable an event is, the bigger the surprise, and thus the more information it yields. An event with 100% probability to occur yields zero information.
+  - Defined as $IC(x) =-log(P(x))$ where _P(x)_ is the probability of event $x$ occurring.
+* For semantic similarity, the probability of encountering a concept _C_ is usually estimated by its frequency _f_  (number of occurrences) in an appropriate corpus.
+  - For example, for the human genome as a corpus, the frequency with which a gene function concept is annotated to some gene.
+  - _P(C) = f(C)/N_ where N is the size of the corpus, and _0 ≤ f(C) ≤ N_.
+  - Frequencies can differ between corpora (e.g., from one genome to another). Hence, choice of corpus needs to be well considered.
+
+## IC-based metrics {.smaller}
+
+::: {layout-ncol=2}
+
+![Induced subgraphs](images/Semsim/concept-dag-subAll.svg)
+
+* In a concept hierarchy, the frequency of a concept C includes the direct (without subsumption) frequencies of all concepts it subsumes: $f(C) = \sum_{C_i\in S(C)} f_D(C_i)$
+* Therefore, $C_i\sqsubseteq C_j \Rightarrow IC(C_i)\ge IC(C_j)$
+* $0 \le IC(C) \lt\infty$
+  - Can be normalized using corpus size _N_: $$0 \le IC(C)/maxIC\le 1;\\ maxIC=-\log(1/N)$$
+
+:::
+
+## IC-based metrics: Resnik {.smaller}
+
+::: {layout-ncol=2}
+
+![Induced subgraphs](images/Semsim/concept-dag-subAll.svg)
+
+* Resnik P (1995) [Using information content to evaluate semantic similarity in a taxonomy](https://arxiv.org/abs/cmp-lg/9511007). Proc. of the 14th International Joint Conference on Artificial Intelligence. pp. 448–453.
+* Resnik similarity:
+  $SimRes(C_1,C_2)=IC(MICA(C_1,C_2))$
+
+  where _MICA_ is the **m**ost **i**nformative **c**ommon **a**ncestor: $MICA(C_1,C_2) =\\ arg\,max_{i,\ C_i\in S(C_1)\cap S(C_2)} IC(C_i)$ 
+
+* MICA is the same as the max IC of the disjoint common subsumers. Related metrics use the average instead.
+
+:::
+
+## IC values as weights
+
+* Using the binary vector of subsumers representation, instead of 1 for non-zero values we can also use weights: $\mathbf{S}_C: s_i=\begin{cases}w_i, 0<w_i<\infty\;\mathrm{if}\ C_i\in S(C)\\ 0\; \mathrm{otherwise}\end{cases}$
+  - Use Jaccard (which then becomes Tanimoto similarity) or Cosine similarity using such weighted vectors
+* IC values provide meaningful weights
+* Can also train weights using ML
+
+## Profile semantic similarity {.smaller}
+
+* In a typical application, need to evaluate the semantic similarity between sets of concepts, called profiles:
+  - Sets of gene function GO terms annotated to two genes, or proteins.
+  - Sets of phenotype or disease ontology terms annotated to two gene variants. Etc
+* Profile semantic similarity uses a pairwise metric. Two major categories depending on how the pairwise metric is applied.
+* **Groupwise** (a.k.a. graph-based): the induced subgraphs of the concepts in a profile are combined, then the pairwise metric is applied to the combined subgraphs.
+  - Groupwise metrics are always symmetric.
+* **Pairwise**: The pairwise metric is applied to all combinations of pairs, then the pairwise scores are aggregated using some function.
+  - Symmetric if the aggregation function is commutative, and asymmetric otherwise.
+
+## Pairwise profile similarity {.smaller}
+
+* Often used in conjunction with IC for pairwise similarity scoring
+* Symmetric functions for aggregating scores (a.k.a. "all pairs"):
+  - Max; if used with IC, known sometimes as MaxIC profile metric.
+  - Average
+* Asymmetric aggregation:
+  - Best pairs: $$SimBP(G_1,G_2)=\frac{1}{|G_1|}\sum_{C_i\in G_1}\max_{Cj\in G_2}(simP(C_i,C_j))$$ with _SimP_ being the pairwise metric (such as IC or Jaccard)
+  - Natural when querying a query profile against a database of profiles
+  - Can be made symmetric by averaging _SimBP(A,B)_ and _SimBP(B,A)_.
+
+## Further reading {.smaller}
+
+* Pesquita C, Faria D, Falcão AO, Lord P, Couto FM (2009) [Semantic Similarity in Biomedical Ontologies](https://doi.org/10.1371/journal.pcbi.1000443). PLoS Comput Biol 5(7): e1000443.
+  - Landmark overview and categorization of semantic similarity metrics used in biostatistics \& biomedical informatics.
+
+* Lord P, Stevens R, Brass A, Goble C (2003) Investigating semantic similarity measures across the Gene Ontology: the relationship between sequence and annotation. Bioinformatics 19: 1275–1283.
+  - Landmark paper: the first major application of semantic similarity for a bio-ontology. Uses the Resnik metric (IC).
+
+* Manda, P., Vision, T. (2018). [An analysis and comparison of the statistical sensitivity of semantic similarity metrics](http://ceur-ws.org/Vol-2285/ICBO_2018_paper_47.pdf). Proc. of the 9th Intern. Conf. on Biol. Ontology (ICBO 2018).
+  - Comparison of the statistical susceptibility to noise for various groupwise and pairwise semantic similarity metrics.
+
+* Kulmanov M, Smaili FZ, Gao X, Hoehndorf R. (2021) [Semantic similarity and machine learning with ontologies](https://doi.org/10.1093/bib/bbaa199). Brief Bioinform. 22(4):bbaa199.
+  
