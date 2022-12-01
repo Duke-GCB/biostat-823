@@ -77,7 +77,7 @@ knitr:
 
 ::: {layout-ncol=2}
 
-![Induced subgraphs](images/Semsim/concept-dag-subAll.svg)
+![](images/Semsim/concept-dag-subAll.svg)
 
 * Binary vector representation of subsumer subgraphs:
   $\mathbf{S}_C: s_i=\begin{cases}1\;\mathrm{if}\ C_i\in S(C)\\ 0\; \mathrm{otherwise}\end{cases}$
@@ -94,12 +94,12 @@ knitr:
 
 ::: {layout-ncol=2}
 
-![Induced subgraphs](images/Semsim/concept-dag-subAll.svg)
+![](images/Semsim/concept-dag-subAll.svg)
 
 * Cosine similarity:
   $SimCos(C_1,C_2)=\frac{\mathbf{S}_{C_1}\cdot\mathbf{S}_{C_2}}{||\mathbf{S}_{C_1}||\ ||\mathbf{S}_{C_2}||}$
 
-* _1-SimCos_ is _not_ a proper distance metric (violates the triangle ineqaulity). Need to convert to normalized angle: $D_\theta(C_1,C_2) = \frac{\arccos(SimCos(C_1,C_2))}{\pi}$
+* _1-SimCos_ is _not_ a proper distance metric (violates the triangle inequality). Need to convert to normalized angle: $D_\theta(C_1,C_2) = \frac{\arccos(SimCos(C_1,C_2))}{\pi}$
 
 :::
 
@@ -118,12 +118,13 @@ knitr:
 
 ::: {layout-ncol=2}
 
-![Induced subgraphs](images/Semsim/concept-dag-subAll.svg)
+![](images/Semsim/concept-dag-subAll.svg)
 
 * In a concept hierarchy, the frequency of a concept C includes the direct (without subsumption) frequencies of all concepts it subsumes: $f(C) = \sum_{C_i\in S(C)} f_D(C_i)$
 * Therefore, $C_i\sqsubseteq C_j \Rightarrow IC(C_i)\ge IC(C_j)$
 * $0 \le IC(C) \lt\infty$
-  - Can be normalized using corpus size _N_: $$0 \le IC(C)/maxIC\le 1;\\ maxIC=-\log(1/N)$$
+  
+  Can be normalized using corpus size _N_: $$0 \le IC(C)/maxIC\le 1;\\ maxIC=-\log(1/N)$$
 
 :::
 
@@ -131,7 +132,7 @@ knitr:
 
 ::: {layout-ncol=2}
 
-![Induced subgraphs](images/Semsim/concept-dag-subAll.svg)
+![](images/Semsim/concept-dag-subAll.svg)
 
 * Resnik P (1995) [Using information content to evaluate semantic similarity in a taxonomy](https://arxiv.org/abs/cmp-lg/9511007). Proc. of the 14th International Joint Conference on Artificial Intelligence. pp. 448–453.
 * Resnik similarity:
