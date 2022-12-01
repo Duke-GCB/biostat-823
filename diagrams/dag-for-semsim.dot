@@ -1,0 +1,28 @@
+digraph OntologyDAG {
+
+   subgraph {
+        node [style=filled, fillcolor=purple]
+        I ; D ; E
+   }
+
+   subgraph {
+        node [style=filled, fillcolor=lightblue]
+        M ; N ; I ; D ; E ;
+   }
+
+   subgraph {
+        node [style=filled, fillcolor=turquoise]
+        F ; I ; D ; E ; G ; C ;
+   }
+
+   A -> B -> C -> D -> E
+   F -> G -> C
+   H -> I -> E
+   M -> N -> I
+   N -> D
+   F -> I
+   J -> C
+   
+   // M [style=filled, fillcolor=lightblue] 
+   // F [style=filled, fillcolor=turquoise] 
+}
