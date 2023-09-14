@@ -2,7 +2,7 @@
 title: "Biostat 823 - Containerization"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Fall 2022"
+date: "Sep 14, 2023"
 format:
   revealjs:
     slide-number: true
@@ -200,10 +200,18 @@ Requires bind mount at container runtime (`docker run`):
 * Can be used for directories and files
 * Using `--mount` generates an error if target directory (or file) doesn't exist
 
-## Resources
+## Resources (I)
 
 * [Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
 * [Docker command line reference](https://docs.docker.com/engine/reference/commandline/cli/)
 * [Singularity file reference](https://docs.sylabs.io/guides/latest/user-guide/definition_files.html)
 * [Singularity command line reference](https://docs.sylabs.io/guides/latest/user-guide/cli.html)
 * [Open Containers Initiative (OCI) standard for annotations](https://github.com/opencontainers/image-spec/blob/main/annotations.md)
+
+## Resources (II)
+
+* [Introduction to Docker](https://carpentries-incubator.github.io/docker-introduction/) (Carpentries Incubator lesson)
+* [DCC OnDemand](https://dcc-ondemand-01.oit.duke.edu/)
+* [Jupyter Docker Stacks](https://jupyter-docker-stacks.readthedocs.io/)
+  - Customized [Biostat Jupyter Docker container](https://github.com/Duke-GCB/biostat-jupyter)
+* [Biostat-823 "everything" GPU container](https://gitlab.oit.duke.edu/owzar001/bios-823-container-gpu/-/blob/main/README.md) (Singularity)
