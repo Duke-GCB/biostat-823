@@ -2,7 +2,7 @@
 title: "Biostat 823: Table of Contents"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Nov 2022"
+date: "Sep 2023"
 format:
   html:
     number-sections: true
