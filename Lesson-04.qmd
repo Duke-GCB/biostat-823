@@ -2,7 +2,7 @@
 title: "Biostat 823 - SQL"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Fall 2022"
+date: "Nov 9, 2023"
 format:
   revealjs:
     slide-number: true
@@ -76,10 +76,10 @@ CREATE TABLE Course (
   Name VARCHAR(64) NOT NULL,
   Semester VARCHAR(16) NOT NULL,
   UNIQUE (Name, Semester) 
-      -- table constraints must be at the end
-      -- of a table definition
 );
 ```
+
+Note that _table constraints_ must be at the end of a table definition.
 
 ## Foreign key constraints
 
@@ -169,7 +169,7 @@ INSERT INTO Instructor (Name, Email) VALUES
     ('Kouros Owzar', 'k.owzar@duke.edu')
   , ('David Page', 'd.page@duke.edu')
   , ('Cliburn Chan', 'c.chan@duke.edu')
-  , ('Quinn Lanners', 'q.l@duke.edu');
+  , ('Sarah Van Dierdonck', 's.v.dierdonck@duke.edu');
 ```
 
 ---
@@ -184,7 +184,7 @@ INSERT INTO Room (Name, Address) VALUES ('Hock 10089', NULL);
 * This extends to optional foreign keys
 ```{sql, label=insertCourse1}
 INSERT INTO Course (Name, Semester) VALUES
-    ('Biostat 823', 'Fall 2021'); 
+    ('Biostat 823', 'Fall 2022'); 
 ```
 
 ## Violating constraints results in error
@@ -203,7 +203,7 @@ INSERT INTO Instructor (Email) VALUES ('first.last@duke.edu');
 * Violating a foreign key constraint (non-existent row)
 ```{sql, label=insertErr3, error=TRUE}
 INSERT INTO Course (Name, Semester, Room_OID) VALUES
-    ('Biostat 823', 'Fall 2022', 10);
+    ('Biostat 823', 'Fall 2023', 10);
 ```
 
 ## Inserting foreign keys
@@ -211,7 +211,7 @@ INSERT INTO Course (Name, Semester, Room_OID) VALUES
 * To insert rows with foreign key values, the statement can include query in place of a literal value:
 ```{sql, insertRoomFK}
 INSERT INTO Course (Name, Semester, Room_OID) VALUES
-    ('Biostat 823', 'Fall 2022',
+    ('Biostat 823', 'Fall 2023',
         (SELECT Room_OID FROM Room WHERE Name = 'Hock 10089')
     );
 ```
@@ -285,6 +285,10 @@ CREATE TABLE Course (
 ```
 
 <!-- populate other tables -->
+```{sql, label=insertCourse21, echo=FALSE}
+INSERT INTO Course (Name, Semester) VALUES
+    ('Biostat 823', 'Fall 2021'); 
+```
 ```{sql, label=insertLesson01, echo=FALSE}
 INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
 SELECT l.*, i.Instructor_OID, c.Course_OID
@@ -292,7 +296,7 @@ FROM (VALUES ('Containerization'),
              ('Relational Data Modeling')) AS l, 
      Instructor AS i, Course AS c
 WHERE i.Email = 'h.lapp@duke.edu'
-AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2022'
+AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2023'
 ;
 ```
 ```{sql, label=insertLesson02, echo=FALSE}
@@ -306,7 +310,7 @@ WHERE i.Email = 'd.page@duke.edu'
 AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2022'
 ;
 ```
-```{sql, label=insertLesson03, echo=FALSE}
+```{sql, label=insertLesson04, echo=FALSE}
 INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
 SELECT l.*, i.Instructor_OID, c.Course_OID
 FROM (VALUES ('General Linear Model'),
@@ -314,10 +318,21 @@ FROM (VALUES ('General Linear Model'),
              ('Applications of vector calculus')) AS l, 
      Instructor AS i, Course AS c
 WHERE i.Email = 'k.owzar@duke.edu'
-AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2022'
+AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2023'
 ;
 ```
-```{sql, label=insertLesson04, echo=FALSE}
+```{sql, label=insertLesson05, echo=FALSE}
+INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
+SELECT l.*, i.Instructor_OID, c.Course_OID
+FROM (VALUES ('Recurrent neural networks'),
+             ('Transformers'),
+             ('How ChatGPT works')) AS l, 
+     Instructor AS i, Course AS c
+WHERE i.Email = 'd.page@duke.edu'
+AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2023'
+;
+```
+```{sql, label=insertLesson06, echo=FALSE}
 INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
 SELECT l.*, i.Instructor_OID, c.Course_OID
 FROM (VALUES ('Python Programming'),
@@ -460,7 +475,7 @@ FROM Instructor AS i LEFT OUTER JOIN Lesson AS l USING (Instructor_OID)
 
 ## Join order {.smaller}
 
-* Join order does not matter for inner joins, but does matter for whether a join must outer and left or right.
+* Join order does not matter for inner joins, but does matter for whether a join must be outer and left or right.
 ```{sql, label=selectJ5}
 SELECT DISTINCT i.Name AS Instructor, c.Name AS Course, c.Semester, r.Name AS Room
 FROM Lesson AS l INNER JOIN Course AS c USING (Course_OID)
@@ -487,7 +502,7 @@ SELECT i.Name AS Instructor, i.Email
 FROM Instructor AS i
 WHERE EXISTS (
     SELECT 1 FROM Lesson AS l INNER JOIN Course c USING (Course_OID)
-    WHERE c.Semester = 'Fall 2022'
+    WHERE c.Semester = 'Fall 2023'
     AND   l.Instructor_OID = i.Instructor_OID
 )
 ```
@@ -500,13 +515,13 @@ SELECT i.Name AS Instructor, i.Email
 FROM Instructor AS i
 WHERE NOT EXISTS (
     SELECT 1 FROM Lesson AS l INNER JOIN Course c USING (Course_OID)
-    WHERE c.Semester = 'Fall 2022'
+    WHERE c.Semester = 'Fall 2023'
     AND   l.Instructor_OID = i.Instructor_OID
 )
 ```
 
 
-## Aggregating rows {.smaller}
+## Aggregating rows {.smaller .scrollable}
 
 * Rows can be aggregated into groups by one or more columns of the same value, using aggregating functions:
   - Note that `COUNT(<column>)` and `COUNT(*)` have different semantics
@@ -544,7 +559,7 @@ GROUP BY i.Name, c.Name, c.Semester
 HAVING COUNT(l.Name) > 0
 ```
 
-## Restricting aggregate groups II {.smaller}
+## Restricting aggregate groups II {.smaller .scrollable}
 
 * `SELECT` and `HAVING` clauses can use different aggregate functions:
 ```{sql, label=selectG2.1}
@@ -596,7 +611,7 @@ GROUP BY i.Instructor_OID, c.Course_OID;
 ```
 * By default, the column names of a view are determined by those of the query
 
-## Querying views {.smaller}
+## Querying views {.smaller .scrollable}
 
 ```{sql, label=selectV2}
 SELECT Instructor, Course, Semester, Lessons, NumLessons FROM Instructor_Courses;
