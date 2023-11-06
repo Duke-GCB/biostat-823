@@ -536,16 +536,14 @@ Hilmar Lapp
 <section id="code-chunks" class="slide level2 scrollable">
 <h2>Code chunks</h2>
 <p>A linear regression model of petal width by sepal length can be fitted in the following way:</p>
-<pre><code>```{r irisRegr}
-lm1 = lm(Petal.Width ~ Sepal.Length, data=iris)
-summary(lm1)</code></pre>
-<pre><code>
-
-::: {.cell}
-
-```{.r .cell-code}
-lm1 = lm(Petal.Width ~ Sepal.Length, data=iris)
-summary(lm1)</code></pre>
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1"></a><span class="in">```{r}</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>lm1 <span class="ot">=</span> <span class="fu">lm</span>(Petal.Width <span class="sc">~</span> Sepal.Length, <span class="at">data=</span>iris)</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="fu">summary</span>(lm1)</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Rendered:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>lm1 <span class="ot">=</span> <span class="fu">lm</span>(Petal.Width <span class="sc">~</span> Sepal.Length, <span class="at">data=</span>iris)</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="fu">summary</span>(lm1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -566,7 +564,7 @@ Residual standard error: 0.44 on 148 degrees of freedom
 Multiple R-squared:  0.669, Adjusted R-squared:  0.6668 
 F-statistic: 299.2 on 1 and 148 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
-<p>:::</p>
+</div>
 </section>
 <section id="plots-also-get-inlined" class="slide level2 scrollable">
 <h2>Plots also get inlined</h2>

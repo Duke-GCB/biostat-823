@@ -131,13 +131,14 @@ Consider Edgar Anderson's Iris data of sepal and petal lengths measurement of `r
 
 A linear regression model of petal width by sepal length can be fitted in the following way:
 
-```         
-`r '\x60\x60\x60{r irisRegr}
+````markdown
+`r '\x60\x60\x60{r}'`
 lm1 = lm(Petal.Width ~ Sepal.Length, data=iris)
 summary(lm1)
-\x60\x60\x60'`
-```
+`r '\x60\x60\x60'`
+````
 
+Rendered:
 ```{r irisRegr}
 lm1 = lm(Petal.Width ~ Sepal.Length, data=iris)
 summary(lm1)
