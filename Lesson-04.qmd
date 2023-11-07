@@ -486,7 +486,7 @@ FROM Lesson AS l INNER JOIN Course AS c USING (Course_OID)
 
 ## Notes and other join constructs 
 
-* `INNER` and `OUTER` are optional, but they can help understanding a query
+* `INNER` is optional (and the default), but it can help understanding a query
 * Additional, but rarely used join constructs include:
   - `FULL OUTER JOIN`: combines left and right outer join
   - `NATURAL JOIN`: joins by columns that have the same name, and reports only one of them
