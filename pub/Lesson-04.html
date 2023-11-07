@@ -1491,7 +1491,7 @@ Hilmar Lapp
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb46-1"><a href="#cb46-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course,</span>
-<span id="cb46-2"><a href="#cb46-2"></a>       <span class="fu">MAX</span>(c.Semester) <span class="kw">AS</span> Semester, <span class="co">-- values are the same in a group; AGGR() ensures it's non-NULL</span></span>
+<span id="cb46-2"><a href="#cb46-2"></a>       <span class="fu">MAX</span>(c.Semester) <span class="kw">AS</span> LastSemester, <span class="co">-- choose one non-NULL value from group</span></span>
 <span id="cb46-3"><a href="#cb46-3"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'#Lessons'</span></span>
 <span id="cb46-4"><a href="#cb46-4"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
 <span id="cb46-5"><a href="#cb46-5"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
@@ -1503,7 +1503,7 @@ Hilmar Lapp
 <tr class="header">
 <th style="text-align: left;">Instructor</th>
 <th style="text-align: left;">Course</th>
-<th style="text-align: left;">Semester</th>
+<th style="text-align: left;">LastSemester</th>
 <th style="text-align: right;">#Lessons</th>
 </tr>
 </thead>

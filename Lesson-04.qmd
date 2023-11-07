@@ -540,7 +540,7 @@ GROUP BY i.Name, c.Name, c.Semester;
   - If neither, the value is from a randomly chosen member of the group.
 ```{sql, label=selectG1.1}
 SELECT i.Name AS Instructor, c.Name AS Course,
-       MAX(c.Semester) AS Semester, -- values are the same in a group; AGGR() ensures it's non-NULL
+       MAX(c.Semester) AS LastSemester, -- choose one non-NULL value from group
        COUNT(l.Name) AS '#Lessons'
 FROM Lesson AS l INNER JOIN Course AS c USING (Course_OID)
      RIGHT OUTER JOIN Instructor AS i USING (Instructor_OID)
