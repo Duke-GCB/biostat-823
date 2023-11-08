@@ -14,96 +14,96 @@ knitr:
 
 ## OLTP vs OLAP
 
-| OLTP <br/><span style="font-size:smaller">(Online Transaction Processing)</span>   | OLAP <br/><span style="font-size:smaller">(Online Analytical Processing)</span> |
-|----------------------------------------|----------------------------------------|
-| Real-time data transactions            | Data analysis (BI) |
-| Fast response times, protected data integrity | Dataset generation for question answering |
-| frequent INSERT, UPDATE, DELETE        | SELECT, frequently aggregated |
-| Highly normalized design               | Denormalized design |
-| Constantly updated                     | Read-only, periodically refreshed |
+| OLTP <br/>[(Online Transaction Processing)]{style="font-size:smaller"} | OLAP <br/>[(Online Analytical Processing)]{style="font-size:smaller"} |
+|------------------------------------|------------------------------------|
+| Real-time data transactions                                            | Data analysis (BI)                                                    |
+| Fast response times, protected data integrity                          | Dataset generation for question answering                             |
+| frequent INSERT, UPDATE, DELETE                                        | SELECT, frequently aggregated                                         |
+| Highly normalized design                                               | Denormalized design                                                   |
+| Constantly updated                                                     | Read-only, periodically refreshed                                     |
 
 ## Data Warehousing
 
-* Data Warehouses support OLAP use-cases and applications.
-* Typically built by ETL or ELT process(es)
-* Often from multiple source databases 
-* Denormalized database schema design based on fact and dimension tables
+-   Data Warehouses support OLAP use-cases and applications.
+-   Typically built by ETL or ELT process(es)
+-   Often from multiple source databases
+-   Denormalized database schema design based on fact and dimension tables
 
 ## Extract--Transform--Load (ETL)
 
-* Often uses staging tables and/or databases
-* Transformation in external software or in SQL
-* Note that tables can be created directly from query:
-  ```sql
-  CREATE TABLE tablename AS SELECT ...
-  ```
+-   Often uses staging tables and/or databases
+
+-   Transformation in external software or in SQL
+
+-   Note that tables can be created directly from query:
+
+    ``` sql
+    CREATE TABLE tablename AS SELECT ...
+    ```
 
 ## Datamarts vs Data Warehouse {.smaller}
 
-* Datamart is a type of Data Warehouse
-  - Datamarts are typically more narrow in data scope
-  - Typically focused on one subject area
-  - Easier and less time-consuming to build
-  - Less memory and storage-intensive than a full Data Warehouse
-![](images/SQL/Data_Warehouse_Feeding_Data_Mart.jpg)
+-   Datamart is a type of Data Warehouse
+    -   Datamarts are typically more narrow in data scope
+    -   Typically focused on one subject area
+    -   Easier and less time-consuming to build
+    -   Less memory and storage-intensive than a full Data Warehouse ![](images/SQL/Data_Warehouse_Feeding_Data_Mart.jpg)
 
 ## Star Schema {.smaller}
 
-* Uses one (central) Fact table and multiple Dimension tables
-* Fact table houses quantitative metrics or measurements
-  - Typically aggregated, based on chosen _granularity_ (of dimension(s))
-  - Foreign key to each dimension
-    ![](images/SQL/star-schema-example2.png){width="40%" style="float: right"}
-* Dimension tables house the dimensions along which to aggregate or slice facts
-  - Time, location, people, etc
-  - Typically denormalized
-  - Each dimension table has 1:n relationship to the fact table
-* Fact table normally has orders of magnitude more rows than dimension tables
-* In essence, this represents a data cube
-  - Fact table is the cells; dimension tables are the dimensions ("axes") of the cube
+-   Uses one (central) Fact table and multiple Dimension tables
+-   Fact table houses quantitative metrics or measurements
+    -   Typically aggregated, based on chosen *granularity* (of dimension(s))
+    -   Foreign key to each dimension ![](images/SQL/star-schema-example2.png){width="40%" style="float: right"}
+-   Dimension tables house the dimensions along which to aggregate or slice facts
+    -   Time, location, people, etc
+    -   Typically denormalized
+    -   Each dimension table has 1:n relationship to the fact table
+-   Fact table normally has orders of magnitude more rows than dimension tables
+-   In essence, this represents a data cube
+    -   Fact table is the cells; dimension tables are the dimensions ("axes") of the cube
 
 ## Star Schema example (generic)
 
-![](images/SQL/star-schema-example1.png){fig-align=center width="65%"}
+![](images/SQL/star-schema-example1.png){fig-align="center" width="65%"}
 
 ::: aside
-This and previous figure from [Microsoft, _Understand star schema and the importance for Power BI_](https://learn.microsoft.com/en-us/power-bi/guidance/star-schema)
+This and previous figure from [Microsoft, *Understand star schema and the importance for Power BI*](https://learn.microsoft.com/en-us/power-bi/guidance/star-schema)
 :::
 
 ## Clinical data warehouse example
 
-![Figure 1 from Hart and Kuo (2016), "Meeting Health Care Research Needs in a Kimball Integrated Data Warehouse," 2016 IEEE International Conference on Data Science and Advanced Analytics (DSAA) [doi: 10.1109/DSAA.2016.91](https://doi.org/ 10.1109/DSAA.2016.91)](images/SQL/Clinical-star-schema-7796957-fig-1-source-large.gif)
+![Figure 1 from Hart and Kuo (2016), "Meeting Health Care Research Needs in a Kimball Integrated Data Warehouse," 2016 IEEE International Conference on Data Science and Advanced Analytics (DSAA) [doi: 10.1109/DSAA.2016.91](https://doi.org/%2010.1109/DSAA.2016.91)](images/SQL/Clinical-star-schema-7796957-fig-1-source-large.gif)
 
 ## Snowflake Schema
 
-* A _Snowflake Schema_ is a Star Schema with more denormalized dimension tables
+-   A *Snowflake Schema* is a Star Schema with more denormalized dimension tables
 
 ![From Wikipedia, [Example of a Snowflake Schema by SqlPac](https://commons.wikimedia.org/wiki/File:Snowflake-schema-example.png)](https://upload.wikimedia.org/wikipedia/commons/7/73/Snowflake-schema-example.png){width="60%"}
 
 ## Reverse Star Schema
 
-* Deployed for descriptive or observational facts
-  - Quantitative metrics often are not meaningful
-  - Typically multiple related facts ("dimension" table rows) for the central fact
-    ![Figure 1 of [Zhang _et al_ (2011)](https://doi.org/10.1093/database/bar038)](images/SQL/biomart-reverse-star.jpeg "Figure 1 of Zhang et al (2011), BioMart: a data federation framework for large collaborative projects. doi:10.1093/database/bar038"){width="40%" style="float: right"}
-  - Queries often involve attributes of the central fact
-* Fact table has 1:n ("reversed") relationship to each "dimension"
-  - Hence, fact table is usually smaller than any of the dimension tables
+-   Deployed for descriptive or observational facts
+    -   Quantitative metrics often are not meaningful
+    -   Typically multiple related facts ("dimension" table rows) for the central fact ![Figure 1 of Zhang et al (2011)](images/SQL/biomart-reverse-star.jpeg "Figure 1 of Zhang et al (2011), BioMart: a data federation framework for large collaborative projects. doi:10.1093/database/bar038"){width="40%" style="float: right"}
+    -   Queries often involve attributes of the central fact
+-   Fact table has 1:n ("reversed") relationship to each "dimension"
+    -   Hence, fact table is usually smaller than any of the dimension tables
 
 ## Data Warehouses in Bioinformatics
 
-* Many biomedical and biological data warehouse systems follow the Reverse Star Schema model
+-   Many biomedical and biological data warehouse systems follow the Reverse Star Schema model
 
-![Figure 8 from Kasprzyk _et al_ (2004) EnsMart: A Generic System for Fast and Flexible Access to Biological Data. Genome Res. doi:[10.1101/gr.1645104](https://doi.org/10.1101/gr.1645104)](images/SQL/Ensmart.jpg)
+![Figure 8 from Kasprzyk *et al* (2004) EnsMart: A Generic System for Fast and Flexible Access to Biological Data. Genome Res. doi:[10.1101/gr.1645104](https://doi.org/10.1101/gr.1645104)](images/SQL/Ensmart.jpg)
 
 ## Genomics Data Warehouse systems {.smaller}
 
-* [BioMart](https://github.com/biomart/BioMart) (successor of EnsMart)
-  - Zhang _et al_ (2011) BioMart: a data federation framework for large collaborative projects, Database, doi:[10.1093/database/bar038](https://doi.org/10.1093/database/bar038)
-  - Underlying the [data mining UI and API for Ensembl](https://www.ensembl.org/info/data/biomart/) (see also [fully normalized Ensembl data model](https://www.ensembl.org/info/docs/api/core/core_schema.html))
-* [Intermine](http://intermine.org)
-  - Smith _et al_ (2012) [InterMine: a flexible data warehouse system for the integration and analysis of heterogeneous biological data](https://doi.org/10.1093/bioinformatics/bts577). Bioinformatics **28**(23):3163-3165
-  - [Uses a configurable object-relational model](http://intermine.org/im-docs/docs/data-model/overview), implemented in a PostgreSQL database
-  - Data access is through APIs
-  - Underlying the [data mining API and UI for Drosophila](https://www.flymine.org/), and deployed for [dozens of other model organism databases](https://en.wikipedia.org/wiki/InterMine#Current_projects_(not_exhaustive_list))
-* See also Triplet and Butler (2014) [A review of genomic data warehousing systems](https://doi.org/10.1093/bib/bbt031). Briefings in Bioinformatics. **15**(4):471–483
+-   [BioMart](https://github.com/biomart/BioMart) (successor of EnsMart)
+    -   Zhang *et al* (2011) BioMart: a data federation framework for large collaborative projects, Database, doi:[10.1093/database/bar038](https://doi.org/10.1093/database/bar038)
+    -   Underlying the [data mining UI and API for Ensembl](https://www.ensembl.org/info/data/biomart/) (see also [fully normalized Ensembl data model](https://www.ensembl.org/info/docs/api/core/core_schema.html))
+-   [Intermine](http://intermine.org)
+    -   Smith *et al* (2012) [InterMine: a flexible data warehouse system for the integration and analysis of heterogeneous biological data](https://doi.org/10.1093/bioinformatics/bts577). Bioinformatics **28**(23):3163-3165
+    -   [Uses a configurable object-relational model](http://intermine.org/im-docs/docs/data-model/overview), implemented in a PostgreSQL database
+    -   Data access is through APIs
+    -   Underlying the [data mining API and UI for Drosophila](https://www.flymine.org/), and deployed for [dozens of other model organism databases](https://en.wikipedia.org/wiki/InterMine#Current_projects_(not_exhaustive_list))
+-   See also Triplet and Butler (2014) [A review of genomic data warehousing systems](https://doi.org/10.1093/bib/bbt031). Briefings in Bioinformatics. **15**(4):471--483
