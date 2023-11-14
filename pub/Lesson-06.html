@@ -11,7 +11,7 @@
   <meta name="generator" content="quarto-1.3.353">
 
   <meta name="author" content="Hilmar Lapp">
-  <meta name="dcterms.date" content="2023-11-16">
+  <meta name="dcterms.date" content="2023-11-14">
   <title>Biostat 823 - Recursive data structures in SQL</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -407,7 +407,7 @@ Hilmar Lapp
     </div>
 </div>
 
-  <p class="date">2023-11-16</p>
+  <p class="date">2023-11-14</p>
 </section>
 <section id="recursive-data-structure" class="slide level2">
 <h2>Recursive data structure</h2>
@@ -1206,6 +1206,126 @@ Hilmar Lapp
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+</section>
+<section id="directed-acyclic-graph-dag" class="slide level2">
+<h2>Directed Acyclic Graph (DAG)</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/Recursion/DAG.png"></p>
+<figcaption>Edges = directed from “start” to “end”</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/Recursion/DAG%20with%20edge%20types.png"></p>
+<figcaption>Edges can have a label or type</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="directed-graph-as-relational-model" class="slide level2 smaller">
+<h2>Directed Graph as relational model</h2>
+<div class="columns">
+<div class="column" style="width:45%;">
+<div class="cell" data-reveal="true">
+<div class="cell-output-display">
+<div>
+<div>
+<pre class="mermaid mermaid-js">erDiagram
+    Node ||--o{ Edge : "edge start"
+    Node ||--o{ Edge : "edge end"
+    Node {
+      integer ID PK
+      string  Label
+    }
+    Edge {
+      integer startNode FK
+      string Label
+      integer endNode FK
+    }
+</pre>
+</div>
+<p>Relational model of a Directed Graph: Adjacency table connecting nodes to each other. (Note that acyclic property of graph cannot be enforced by a relational database.)</p>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:45%;">
+<div class="cell" data-reveal="true">
+<div class="cell-output-display">
+<div>
+<div>
+<pre class="mermaid mermaid-js">erDiagram
+    Node ||--o{ Edge : "edge start"
+    Node ||--o{ Edge : "edge end"
+    Node ||--o{ Edge : "edge type"
+    Node {
+      integer ID PK
+      string  Label
+    }
+    Edge {
+      integer startNode FK
+      integer type FK
+      integer endNode FK
+    }
+</pre>
+</div>
+<p>Relational model of a Directed Graph with edge type normalized as a node entity. (This could also be a separate table.)</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="paths-through-directed-graph" class="slide level2">
+<h2>Paths through directed graph</h2>
+<ul>
+<li>Define recursively: <span class="math inline">\(path(x,y,t,l) := \{ edge(x,y,t) \cup\ edge(path(x,z,t,l-1), y, t) \}\)</span>
+<ul>
+<li>There is a path from <span class="math inline">\(x\)</span> to <span class="math inline">\(y\)</span> of type <span class="math inline">\(t\)</span> and length <span class="math inline">\(l\)</span> iff there is an edge from <span class="math inline">\(x\)</span> to <span class="math inline">\(y\)</span> of type <span class="math inline">\(t\)</span>, or if there is path from <span class="math inline">\(x\)</span> to <span class="math inline">\(z\)</span> of type <span class="math inline">\(t\)</span> and length <span class="math inline">\(l-1\)</span> and an egde of type <span class="math inline">\(t\)</span> from <span class="math inline">\(z\)</span> to <span class="math inline">\(y\)</span>.</li>
+</ul></li>
+<li>The set of all paths is called the transitive closure.</li>
+</ul>
+</section>
+<section id="transitive-closure-for-directed-graph" class="slide level2">
+<h2>Transitive closure for directed graph</h2>
+<div class="cell" data-reveal="true">
+<div class="cell-output-display">
+<div>
+<div>
+
+<pre class="mermaid mermaid-js">erDiagram
+%%| fig-cap: "Relational model of a Directed Graph with a path table for transitive closure."
+    Node ||--o{ Edge : "edge start"
+    Node ||--o{ Edge : "edge end"
+    Node ||--o{ Edge : "edge type"
+    Node ||--o{ Path : "path start"
+    Node ||--o{ Path : "path end"
+    Node ||--o{ Path : "path type"
+    Node {
+      integer ID PK
+      string  Label
+      boolean isTransitive
+    }
+    Edge {
+      integer startNode FK
+      integer type FK
+      integer endNode FK
+    }
+    Path {
+      integer startNode FK
+      integer type FK
+      integer endNode FK
+      integer length
+    }
+</pre>
+</div>
+</div>
 </div>
 </div>
 <div class="footer footer-default">

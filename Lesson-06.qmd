@@ -2,7 +2,7 @@
 title: "Biostat 823 - Recursive data structures in SQL"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Nov 16, 2023"
+date: "Nov 14, 2023"
 format:
   revealjs:
     slide-number: true
@@ -283,4 +283,100 @@ FROM Node_Path AS np
 GROUP BY a.ID, a.Name
 HAVING COUNT(n.Name) > 1
 ORDER BY Min_Path_Len;
+```
+
+## Directed Acyclic Graph (DAG)
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+![Edges = directed from "start" to "end"](images/Recursion/DAG.png)
+:::
+
+::: {.column width="50%"}
+
+![Edges can have a label or type](images/Recursion/DAG with edge types.png)
+:::
+
+::::
+
+## Directed Graph as relational model {.smaller}
+
+:::: {.columns}
+
+::: {.column width="45%"}
+
+```{mermaid}
+%%| fig-cap: "Relational model of a Directed Graph: Adjacency table connecting nodes to each other. (Note that acyclic property of graph cannot be enforced by a relational database.)"
+erDiagram
+    Node ||--o{ Edge : "edge start"
+    Node ||--o{ Edge : "edge end"
+    Node {
+      integer ID PK
+      string  Label
+    }
+    Edge {
+      integer startNode FK
+      string Label
+      integer endNode FK
+    }
+```
+:::
+
+::: {.column width="45%"}
+
+```{mermaid}
+%%| fig-cap: "Relational model of a Directed Graph with edge type normalized as a node entity. (This could also be a separate table.)"
+erDiagram
+    Node ||--o{ Edge : "edge start"
+    Node ||--o{ Edge : "edge end"
+    Node ||--o{ Edge : "edge type"
+    Node {
+      integer ID PK
+      string  Label
+    }
+    Edge {
+      integer startNode FK
+      integer type FK
+      integer endNode FK
+    }
+```
+:::
+
+::::
+
+## Paths through directed graph
+
+* Define recursively: $path(x,y,t,l) := \{ edge(x,y,t) \cup\ edge(path(x,z,t,l-1), y, t) \}$
+  - There is a path from $x$ to $y$ of type $t$ and length $l$ iff there is an edge from $x$ to $y$ of type $t$, or if there is path from $x$ to $z$ of type $t$ and length $l-1$ and an egde of type $t$ from $z$ to $y$.
+* The set of all paths is called the transitive closure.
+
+## Transitive closure for directed graph
+
+```{mermaid}
+erDiagram
+%%| fig-cap: "Relational model of a Directed Graph with a path table for transitive closure."
+    Node ||--o{ Edge : "edge start"
+    Node ||--o{ Edge : "edge end"
+    Node ||--o{ Edge : "edge type"
+    Node ||--o{ Path : "path start"
+    Node ||--o{ Path : "path end"
+    Node ||--o{ Path : "path type"
+    Node {
+      integer ID PK
+      string  Label
+      boolean isTransitive
+    }
+    Edge {
+      integer startNode FK
+      integer type FK
+      integer endNode FK
+    }
+    Path {
+      integer startNode FK
+      integer type FK
+      integer endNode FK
+      integer length
+    }
 ```
