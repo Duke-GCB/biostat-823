@@ -2,7 +2,7 @@
 title: "Biostat 823 - Web Ontology Language"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Fall 2022"
+date: "Nov 16, 2023"
 format:
   revealjs:
     slide-number: true
@@ -27,10 +27,10 @@ knitr:
 * Thriving community of ontology editors, semantic engineers, data scientists, and software developers
 * [100s of ontologies](https://obofoundry.org) covering various domains across biology and biomedicine
 * Open-source software tooling ecosystem:
-  - Protégé ontology editor
-  - Automatic reasoners
-  - Command-line tooling
-  - Ontology development kit libraries and tools
+  - [Protégé]() ontology editor
+  - [Machine reasoners](http://owl.cs.manchester.ac.uk/tools/list-of-reasoners/)
+  - [Command-line tooling](http://robot.obolibrary.org)
+  - [Ontology development kit](https://github.com/INCATools/ontology-development-kit), [libraries and tools](https://github.com/INCATools/ontology-access-kit)
 
 ## OWL2: Terminology vs DL and FOL {.smaller}
 
@@ -52,7 +52,7 @@ Individuals and classes are sometimes referred as _particulars_ and _universals_
 
 ## OWL2 constructs vs DL notation (I) {.smaller}
 
-_C_ and _D_ are concepts. If $a\ R\ b$ then _b_ is connnected by R (_"R-successor"_).
+_C_ and _D_ are concepts, _R_ is a role (property). If $a\ R\ b$ then _b_ is connnected by R (_"R-successor"_).
 
 | DL notation | Concept             | OWL2 (Functional Syntax)   |
 |---------|-------------------------|----------------------------|
@@ -122,7 +122,7 @@ _C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ a
   
   'index finger' _SubClassOf_ 'anatomical structure' _and_ :part_of _some_ 'hand'
   
-* Note that existential quantification is "assymmetric", and the reverse with the inverse property does not necessarily follow:
+* Note that existential quantification is "asymmetric", and the reverse with the inverse property does not necessarily follow:
 
   $hand\not\sqsubseteq\exists has\_part.index\_finger$
 
