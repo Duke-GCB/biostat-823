@@ -2,7 +2,7 @@
 title: "Biostat 823 - Literate Programming"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Nov 2, 2023"
+date: "Aug 29, 2024"
 format:
   revealjs:
     slide-number: true
