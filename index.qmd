@@ -19,7 +19,7 @@ editor: visual
 
 ### [Literate Programming](Lesson-LitProg.html)
 ### [Containerization](Lesson-02.html)
-### [Relational Data Modeling](Lesson-03.html)
+### [Relational Data Modeling](Lesson-RelMod.html)
 ### [Structured Query Language (SQL)](Lesson-04.html)
 ### [Data Warehousing](Lesson-05.html)
 ### [Recursive Data Structures in SQL](Lesson-06.html)
