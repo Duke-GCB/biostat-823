@@ -2,7 +2,7 @@
 title: "Biostat 823: Table of Contents"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Sep 2023"
+date: "Sep 2024"
 format:
   html:
     number-sections: true
@@ -17,7 +17,7 @@ editor: visual
 
 * [GitHub repository](https://github.com/Duke-GCB/biostat-823) for lesson slides
 
-### [Literate Programming](Lesson-01.html)
+### [Literate Programming](pub/Lesson-LitProg.html)
 ### [Containerization](Lesson-02.html)
 ### [Relational Data Modeling](Lesson-03.html)
 ### [Structured Query Language (SQL)](Lesson-04.html)
