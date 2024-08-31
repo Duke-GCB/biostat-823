@@ -2,7 +2,7 @@
 title: "Biostat 823 - SQL"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Nov 9, 2023"
+date: "Sep 5, 2024"
 format:
   revealjs:
     slide-number: true
@@ -30,7 +30,7 @@ knitr:
 -   We use [SQLite](https://www.sqlite.org/) as the RDBMS, but where possible try to stick to SQL-92, which should work under any modern RDBMS
 -   We try to point out where constructs might need modification for other RDBMSs.
 
-```{r, setupSQLite, include=FALSE}
+```{r label=setupSQLite, include=FALSE}
 library(RSQLite)
 library(DBI)
 db <- dbConnect(RSQLite::SQLite(), ":memory:")
@@ -39,7 +39,7 @@ knitr::opts_chunk$set(connection = "db")
 ```
 
 <!-- ensure foreign key enforcement is enabled -->
-```{sql, echo=FALSE}
+```{sql label=enforceFKs, echo=FALSE}
 PRAGMA foreign_keys = ON;
 ```
 
@@ -55,7 +55,7 @@ PRAGMA foreign_keys = ON;
 
 -   We use `CREATE TABLE` to define (create) relations (entities in an E-R model), along with their constraints:
 
-```{sql, label=createTable1}
+```{sql label=createTable1}
 -- Double minus is the standard syntax for comment (single-line).
 CREATE TABLE Instructor (
   Instructor_OID INTEGER PRIMARY KEY, -- surrogate PK (implies NOT NULL)
@@ -70,7 +70,7 @@ In SQLite, tables by default have a hidden property named rowid, which uniquely 
 
 ## Composite natural keys
 
-```{sql, label=createTable2}
+```{sql label=createTable2}
 CREATE TABLE Course (
   Course_OID INTEGER PRIMARY KEY,
   Name VARCHAR(64) NOT NULL,
@@ -83,7 +83,7 @@ Note that _table constraints_ must be at the end of a table definition.
 
 ## Foreign key constraints
 
-```{sql, label=createTable3}
+```{sql label=createTable3}
 CREATE TABLE Lesson (
   Name VARCHAR(64) NOT NULL,
   Instructor_OID INTEGER NOT NULL
@@ -109,7 +109,7 @@ CREATE TABLE Lesson (
 
     -   But they also increase transaction cost
 
-    ```{sql, label=createIdx1}
+    ```{sql label=createIdx1}
     CREATE INDEX Instructor_Name_Idx ON Instructor (Name);
     ```
 
@@ -117,11 +117,11 @@ CREATE TABLE Lesson (
 
 -   For transaction performance, columns in `FOREIGN KEY` constraints should typically be indexed
 
-```{sql, label=createIdx2}
+```{sql label=createIdx2}
 CREATE INDEX Lesson_Course_Idx ON Lesson (Course_OID);
 ```
 
-```{sql, label=createIdx3}
+```{sql label=createIdx3}
 CREATE INDEX Lesson_Instructor_Idx ON Lesson (Instructor_OID);
 ```
 
@@ -129,7 +129,7 @@ CREATE INDEX Lesson_Instructor_Idx ON Lesson (Instructor_OID);
 
 -   Add table for rooms:
 
-```{sql, label=createTbl4}
+```{sql label=createTbl4}
 CREATE TABLE Room (
   Room_OID INTEGER PRIMARY KEY,
   Name VARCHAR(32) NOT NULL UNIQUE,
@@ -139,7 +139,7 @@ CREATE TABLE Room (
 
 -   Now add a foreign key to the courses table:
 
-```{sql, label=alter1}
+```{sql label=alter1}
 ALTER TABLE Course
   ADD COLUMN Room_OID INTEGER
   REFERENCES Room (Room_OID) ON DELETE SET NULL;
@@ -158,31 +158,31 @@ ALTER TABLE Course
 
 * `INSERT` statements add rows to tables.
   - Note that auto-generated surrogate primary keys should not be supplied. 
-```{sql, label=insert1}
+```{sql label=insert1}
 INSERT INTO Instructor (Name, Email) VALUES (
   'Hilmar Lapp', 'h.lapp@duke.edu'
 );
 ```
 * Multiple rows can be specified:
-```{sql, label=insert2}
+```{sql label=insert2}
 INSERT INTO Instructor (Name, Email) VALUES
     ('Kouros Owzar', 'k.owzar@duke.edu')
   , ('David Page', 'd.page@duke.edu')
   , ('Cliburn Chan', 'c.chan@duke.edu')
-  , ('Sarah Van Dierdonck', 's.v.dierdonck@duke.edu');
+  , ('Chengxin Yang', 'chengxin@duke.edu');
 ```
 
 ---
 
 * NULLable columns can be omitted, or provided as NULL
-```{sql, label=insertRoom1}
+```{sql label=insertRoom1}
 INSERT INTO Room (Name) VALUES ('North 100');
 ```
-```{sql, label=insertRoom2}
+```{sql label=insertRoom2}
 INSERT INTO Room (Name, Address) VALUES ('Hock 10089', NULL);
 ```
 * This extends to optional foreign keys
-```{sql, label=insertCourse1}
+```{sql label=insertCourse1}
 INSERT INTO Course (Name, Semester) VALUES
     ('Biostat 823', 'Fall 2022'); 
 ```
@@ -190,47 +190,47 @@ INSERT INTO Course (Name, Semester) VALUES
 ## Violating constraints results in error
 
 * Violating a uniqueness constraint (natural primary key)
-```{sql, label=insertErr1, error=TRUE}
+```{sql label=insertErr1, error=TRUE}
 INSERT INTO Instructor (Name, Email) VALUES
     ('H. Lapp', 'h.lapp@duke.edu');
 ```
 
 * Violating a NOT NULL constraint (required value)
-```{sql, label=insertErr2, error=TRUE}
+```{sql label=insertErr2, error=TRUE}
 INSERT INTO Instructor (Email) VALUES ('first.last@duke.edu');
 ```
 
 * Violating a foreign key constraint (non-existent row)
-```{sql, label=insertErr3, error=TRUE}
+```{sql label=insertErr3, error=TRUE}
 INSERT INTO Course (Name, Semester, Room_OID) VALUES
-    ('Biostat 823', 'Fall 2023', 10);
+    ('Biostat 823', 'Fall 2024', 10);
 ```
 
 ## Inserting foreign keys
 
-* To insert rows with foreign key values, the statement can include query in place of a literal value:
-```{sql, insertRoomFK}
+* To insert rows with foreign key values, the statement can include a query in place of a literal value (a.k.a. _subquery_):
+```{sql label=insertRoomFK}
 INSERT INTO Course (Name, Semester, Room_OID) VALUES
-    ('Biostat 823', 'Fall 2023',
+    ('Biostat 823', 'Fall 2024',
         (SELECT Room_OID FROM Room WHERE Name = 'Hock 10089')
     );
 ```
-* When controlled programmatically, foreign key values are typically first retrieved in a separate query (to enable caching for performance gain).
+* In programming, foreign key values are typically first retrieved in a separate query and then included as a literal ($\rightarrow$ more concise and potentially faster INSERT statement).
 
 ## Updating rows: Basics
 
 * The common case is to update specific row(s) matching a condition:
 
-```{sql, label=update1}
+```{sql label=update1}
 UPDATE Room
-SET    Address = '2424 Erwin Rd, Unit 301, Durham, NC 27705'
+SET    Address = '2424 Erwin Rd, Durham, NC 27705'
 WHERE  Name = 'Hock 10089'
 ```
 
 * The `WHERE` clause is optional; if left off, updates _all_ rows.
 * Updates that create a constraint violation result in error:
 
-```{sql, label=update2, error=TRUE}
+```{sql label=update2, error=TRUE}
 UPDATE Instructor
 SET    Email = 'first.last@duke.edu'
 ```
@@ -238,7 +238,7 @@ SET    Email = 'first.last@duke.edu'
 ## Updating foreign keys
 
 * Similar to `INSERT` statements, `UPDATE` statements can also use a query in place of a literal value to retrieve a value dynamically:
-```{sql, label=updateFk}
+```{sql label=updateFk}
 UPDATE Course
 SET    Room_OID = (SELECT Room_OID FROM Room WHERE Name = 'Hock 10089')
 WHERE  Name = 'Biostat 823' AND Semester = 'Fall 2022';
@@ -247,14 +247,14 @@ WHERE  Name = 'Biostat 823' AND Semester = 'Fall 2022';
 ## Deleting rows: Basics
 
 * The common case is to delete row(s) matching a specific condition:
-```{sql, label=delete1}
+```{sql label=delete1}
 DELETE FROM Room
 WHERE Name = 'North 100'; 
 ```
 * The `WHERE` clause is optional; if left off, _all_ rows are deleted.
 
 * Note that for both `UPDATE` and `DELETE`, no rows matching the condition is not an error.
-```{sql, label=delete2}
+```{sql label=delete2}
 DELETE FROM Instructor
 WHERE Name = 'John Smith';
 ```
@@ -285,11 +285,29 @@ CREATE TABLE Course (
 ```
 
 <!-- populate other tables -->
-```{sql, label=insertCourse21, echo=FALSE}
+```{sql label=insertCourse21, echo=FALSE}
 INSERT INTO Course (Name, Semester) VALUES
     ('Biostat 823', 'Fall 2021'); 
 ```
-```{sql, label=insertLesson01, echo=FALSE}
+```{sql label=insertCourse23, echo=FALSE}
+INSERT INTO Course (Name, Semester, Room_OID) VALUES
+    ('Biostat 823', 'Fall 2023',
+        (SELECT Room_OID FROM Room WHERE Name = 'Hock 10089')
+    );
+```
+```{sql label=insertLessonHL01, echo=FALSE}
+INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
+SELECT l.*, i.Instructor_OID, c.Course_OID
+FROM (VALUES ('Containerization'),
+             ('Relational Data Modeling'),
+             ('Python for AI/ML'),
+             ('Reproducible Worflows')) AS l, 
+     Instructor AS i, Course AS c
+WHERE i.Email = 'h.lapp@duke.edu'
+AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2024'
+;
+```
+```{sql label=insertLessonHL02, echo=FALSE}
 INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
 SELECT l.*, i.Instructor_OID, c.Course_OID
 FROM (VALUES ('Containerization'),
@@ -299,7 +317,7 @@ WHERE i.Email = 'h.lapp@duke.edu'
 AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2023'
 ;
 ```
-```{sql, label=insertLesson02, echo=FALSE}
+```{sql label=insertLessonDP01, echo=FALSE}
 INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
 SELECT l.*, i.Instructor_OID, c.Course_OID
 FROM (VALUES ('Databases and Graphs'),
@@ -310,7 +328,7 @@ WHERE i.Email = 'd.page@duke.edu'
 AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2022'
 ;
 ```
-```{sql, label=insertLesson04, echo=FALSE}
+```{sql label=insertLessonKO01, echo=FALSE}
 INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
 SELECT l.*, i.Instructor_OID, c.Course_OID
 FROM (VALUES ('General Linear Model'),
@@ -321,7 +339,7 @@ WHERE i.Email = 'k.owzar@duke.edu'
 AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2023'
 ;
 ```
-```{sql, label=insertLesson05, echo=FALSE}
+```{sql label=insertLessonDP02, echo=FALSE}
 INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
 SELECT l.*, i.Instructor_OID, c.Course_OID
 FROM (VALUES ('Recurrent neural networks'),
@@ -332,7 +350,7 @@ WHERE i.Email = 'd.page@duke.edu'
 AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2023'
 ;
 ```
-```{sql, label=insertLesson06, echo=FALSE}
+```{sql label=insertLessonCC01, echo=FALSE}
 INSERT INTO Lesson (Name, Instructor_OID, Course_OID)
 SELECT l.*, i.Instructor_OID, c.Course_OID
 FROM (VALUES ('Python Programming'),
@@ -364,43 +382,43 @@ AND   c.Name = 'Biostat 823' AND c.Semester = 'Fall 2021'
 
 ## Simple querying {.smaller}
 
-```{sql, label=select1}
+```{sql label=select1}
 SELECT * FROM Instructor;
 ```
 
-## Controlling columns to be reported {.smaller}
+## Controlling columns to be reported {.smaller .scrollable}
 
 * We can enumerate and thus limit columns to be reported:
-```{sql, label=select3}
-SELECT Name FROM Room;
+```{sql label=select3}
+SELECT Name, Address FROM Room;
 ```
 
 * We can also rename columns, transform them, and apply functions:
-```{sql, label=select4}
+```{sql label=select4}
 SELECT Course_OID AS ID, 
        Name || ' (' || Semester || ')' AS Course_Name,
-       IFNULL(Room_OID, 'Unassigned') AS Room
+       IFNULL(Room_OID, -1) AS Room
 FROM Course;
 ```
 
 ## Filter matching rows: WHERE {.smaller}
 
-```{sql, label=select5}
+```{sql label=select5}
 SELECT Email from Instructor
 WHERE Name = 'Hilmar Lapp';
 ```
 
 * We can use functions; wildcard matches use `LIKE':
-```{sql, label=select6}
-SELECT Name from Lesson
+```{sql label=select6}
+SELECT DISTINCT Name from Lesson   -- DISTINCT makes rows unique
 WHERE UPPER(Name) LIKE '%DATA%';
 ```
 
 ---
 
 * Conditions can include subqueries
-```{sql, label=select7}
-SELECT Name FROM Lesson
+```{sql label=select7}
+SELECT DISTINCT Name FROM Lesson
 WHERE Instructor_OID IN (
    SELECT Instructor_OID
    FROM Instructor WHERE Name LIKE 'h%'
@@ -410,19 +428,19 @@ WHERE Instructor_OID IN (
 ## NULL is special {.smaller}
 
 * The representation of NULL depends on environment; in R:
-```{sql, label=select2}
+```{sql label=select2}
 SELECT * FROM Course;
 ```
 
 ---
 
 * Note that NULL is not equal or unequal to anything, including itself:
-```{sql, label=select7.1}
+```{sql label=select7.1}
 SELECT Name, Semester FROM Course
 WHERE Room_OID = NULL OR NOT Room_OID = NULL;
 ```
 * Instead we must use a special boolean operator:
-```{sql, label=select7.2}
+```{sql label=select7.2}
 SELECT Name, Semester FROM Course WHERE Room_OID IS NULL;
 ```
 
@@ -430,7 +448,7 @@ SELECT Name, Semester FROM Course WHERE Room_OID IS NULL;
 
 * Table joins allow creating denormalized reports from a normalized database
 
-```{sql, label=selectJ1}
+```{sql label=selectJ1}
 SELECT c.Name AS Course, c.Semester, l.Name AS Lesson
 FROM Course AS c INNER JOIN Lesson AS l ON (c.Course_OID = l.Course_OID)
 LIMIT 5;
@@ -442,22 +460,22 @@ FROM Course AS c INNER JOIN Lesson AS l
      USING (Course_OID);
 ```
 
-## Joining multiple tables {.smaller}
+## Joining multiple tables {.smaller .scrollable}
 
 * Table joins can span more than 2 tables:
-```{sql, label=selectJ2}
-SELECT c.Name AS Course, r.Name AS Room, l.Name AS Lesson, i.Name AS Instructor
+```{sql label=selectJ2, max.print=NA}
+SELECT c.Name AS Course, substr(c.Semester,-4) AS Year,
+       r.Name AS Room, l.Name AS Lesson, i.Name AS Instructor
 FROM Course AS c INNER JOIN Lesson AS l USING (Course_OID)
      INNER JOIN Instructor AS i USING (Instructor_OID)
-     INNER JOIN Room AS r USING (Room_OID)
-LIMIT 7;
+     INNER JOIN Room AS r USING (Room_OID);
 ```
 
 ## Joining tables: Outer join {.smaller}
 
 * Use a left or right outer join to include rows from the left or right side of a join that don't match the join condition:
 
-```{sql, label=selectJ3}
+```{sql label=selectJ3}
 SELECT c.Name AS Course, c.Semester, r.Name AS Room
 FROM Course AS c LEFT OUTER JOIN Room AS r USING (Room_OID);
 ```
@@ -466,7 +484,7 @@ FROM Course AS c LEFT OUTER JOIN Room AS r USING (Room_OID);
 
 * Outer joins are not limited to NULLable columns.
   - For example, reporting all instructors, and courses for them
-```{sql, label=selectJ4}
+```{sql label=selectJ4}
 SELECT DISTINCT i.Name AS Instructor, c.Name AS Course, c.Semester, r.Name AS Room
 FROM Instructor AS i LEFT OUTER JOIN Lesson AS l USING (Instructor_OID)
      LEFT OUTER JOIN Course AS c USING (Course_OID)
@@ -476,7 +494,7 @@ FROM Instructor AS i LEFT OUTER JOIN Lesson AS l USING (Instructor_OID)
 ## Join order {.smaller}
 
 * Join order does not matter for inner joins, but does matter for whether a join must be outer and left or right.
-```{sql, label=selectJ5}
+```{sql label=selectJ5}
 SELECT DISTINCT i.Name AS Instructor, c.Name AS Course, c.Semester, r.Name AS Room
 FROM Lesson AS l INNER JOIN Course AS c USING (Course_OID)
      LEFT OUTER JOIN Room AS r USING (Room_OID)
@@ -497,7 +515,7 @@ FROM Lesson AS l INNER JOIN Course AS c USING (Course_OID)
 * Some queries that can be answered joining related facts may be easier to define and faster to execute by querying for existence of a fact.
 
 * For example, which instructors are teaching in a given semester:
-```{sql, label=selectExists1}
+```{sql label=selectExists1}
 SELECT i.Name AS Instructor, i.Email
 FROM Instructor AS i
 WHERE EXISTS (
@@ -507,15 +525,15 @@ WHERE EXISTS (
 )
 ```
 
----
+## Existential subquery negation {.smaller}
 
-* This can also be negated: instructors who don't teach in a given semester
-```{sql, label=selectExists2}
+* For example, instructors who _don't_ teach in a given semester
+```{sql label=selectExists2}
 SELECT i.Name AS Instructor, i.Email
 FROM Instructor AS i
 WHERE NOT EXISTS (
     SELECT 1 FROM Lesson AS l INNER JOIN Course c USING (Course_OID)
-    WHERE c.Semester = 'Fall 2023'
+    WHERE c.Semester = 'Fall 2024'
     AND   l.Instructor_OID = i.Instructor_OID
 )
 ```
@@ -525,7 +543,7 @@ WHERE NOT EXISTS (
 
 * Rows can be aggregated into groups by one or more columns of the same value, using aggregating functions:
   - Note that `COUNT(<column>)` and `COUNT(*)` have different semantics
-```{sql, label=selectG1}
+```{sql label=selectG1}
 SELECT i.Name AS Instructor, c.Name AS Course, c.Semester,
        COUNT(l.Name) AS '#Lessons',
        COUNT(*) AS '#RowsInGroup'
@@ -538,7 +556,7 @@ GROUP BY i.Name, c.Name, c.Semester;
 
 * `SELECT`ed columns should be `GROUP`ed or aggregated.
   - If neither, the value is from a randomly chosen member of the group.
-```{sql, label=selectG1.1}
+```{sql label=selectG1.1}
 SELECT i.Name AS Instructor, c.Name AS Course,
        MAX(c.Semester) AS LastSemester, -- choose one non-NULL value from group
        COUNT(l.Name) AS '#Lessons'
@@ -550,7 +568,7 @@ GROUP BY i.Name, c.Name;
 ## Restricting aggregate groups I {.smaller}
 
 * We can restrict which aggregate groups match based on conditions using aggregate function(s):
-```{sql, label=selectG2}
+```{sql label=selectG2}
 SELECT i.Name AS Instructor, c.Name AS Course, c.Semester,
        COUNT(l.Name) AS '#Lessons'
 FROM Lesson AS l INNER JOIN Course AS c USING (Course_OID)
@@ -562,7 +580,7 @@ HAVING COUNT(l.Name) > 0
 ## Restricting aggregate groups II {.smaller .scrollable}
 
 * `SELECT` and `HAVING` clauses can use different aggregate functions:
-```{sql, label=selectG2.1}
+```{sql label=selectG2.1}
 SELECT i.Name AS Instructor, c.Name AS Course, c.Semester,
        GROUP_CONCAT(l.Name,', ') AS Lessons
 FROM Lesson AS l INNER JOIN Course AS c USING (Course_OID)
@@ -574,7 +592,7 @@ HAVING COUNT(l.Name) > 0
 ## Restricting aggregate groups III {.smaller}
 
 * Queries can use both row conditions and aggregate group conditions
-```{sql, label=selectG3}
+```{sql label=selectG3}
 SELECT i.Name AS Instructor, c.Name AS Course, c.Semester,
        COUNT(l.Name) AS '#Lessons'
 FROM Lesson AS l INNER JOIN Course AS c USING (Course_OID)
@@ -597,7 +615,7 @@ HAVING COUNT(l.Name) > 0
 ## Creating views
 
 * We create views simply based on a query, which can be simple or complex
-```{sql, label=selectV1}
+```{sql label=selectV1}
 CREATE VIEW Instructor_Courses AS
 SELECT i.Instructor_OID,
        MAX(i.Name) AS Instructor,
@@ -613,14 +631,14 @@ GROUP BY i.Instructor_OID, c.Course_OID;
 
 ## Querying views {.smaller .scrollable}
 
-```{sql, label=selectV2}
+```{sql label=selectV2}
 SELECT Instructor, Course, Semester, Lessons, NumLessons FROM Instructor_Courses;
 ```
 
 ## Views can be filtered, aggregated etc {.smaller}
 
 * For example, report the average number of lessons per course semester 
-```{sql, label=selectV3}
+```{sql label=selectV3}
 SELECT Course, Semester, ROUND(AVG(NumLessons), 2) AS 'mean(#Lessons)'
 FROM Instructor_Courses
 WHERE NumLessons > 0
@@ -630,7 +648,7 @@ GROUP BY Course, Semester
 ## Views can be joined {.smaller}
 
 * As APIs, it is useful to include surrogate primary keys of participating objects in a view, which allows joining them for auxiliary facts
-```{sql, label=selectV4}
+```{sql label=selectV4}
 SELECT Instructor, Course, Semester, r.Name AS Room
 FROM Instructor_Courses 
      LEFT OUTER JOIN Room AS r USING (Room_OID)
@@ -644,8 +662,8 @@ WHERE Course IS NOT NULL
   - append `DESC` for descending order
   - note that ordering can have a performance cost
 * In most (OO) programming language environments, SQL database interaction is handled under the hood by ORM (Object-Relational Mapping) libraries
-  - e.g., [sqlalchemy](https://www.sqlalchemy.org) in Python; `pandas` [can read/write from/to a SQL database](https://pandas.pydata.org/docs/user_guide/io.html#io-sql)
+  - e.g., [sqlalchemy](https://www.sqlalchemy.org) in Python
 * Some popular datascience packages for R and Python have SQL database interfaces
-  - e.g., [dbplyr](https://dbplyr.tidyverse.org) in R
+  - e.g., [dbplyr](https://dbplyr.tidyverse.org) in R; in Python, `pandas` [can read/write from/to a SQL database](https://pandas.pydata.org/docs/user_guide/io.html#io-sql)
 * [SQLite Documentation](https://www.sqlite.org/docs.html)
 * Joe Celko, _Joe Celko's SQL for Smarties: Advanced SQL Programming_. Morgan & Kaufmann, 2015

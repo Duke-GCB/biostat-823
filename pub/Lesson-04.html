@@ -11,7 +11,7 @@
   <meta name="generator" content="quarto-1.3.353">
 
   <meta name="author" content="Hilmar Lapp">
-  <meta name="dcterms.date" content="2023-11-09">
+  <meta name="dcterms.date" content="2024-09-05">
   <title>Biostat 823 - SQL</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -404,7 +404,7 @@ Hilmar Lapp
     </div>
 </div>
 
-  <p class="date">2023-11-09</p>
+  <p class="date">2024-09-05</p>
 </section>
 <section id="structured-query-language-sql" class="slide level2 smaller">
 <h2>Structured Query Language (SQL)</h2>
@@ -573,7 +573,7 @@ Hilmar Lapp
 <span id="cb10-2"><a href="#cb10-2"></a>    (<span class="st">'Kouros Owzar'</span>, <span class="st">'k.owzar@duke.edu'</span>)</span>
 <span id="cb10-3"><a href="#cb10-3"></a>  , (<span class="st">'David Page'</span>, <span class="st">'d.page@duke.edu'</span>)</span>
 <span id="cb10-4"><a href="#cb10-4"></a>  , (<span class="st">'Cliburn Chan'</span>, <span class="st">'c.chan@duke.edu'</span>)</span>
-<span id="cb10-5"><a href="#cb10-5"></a>  , (<span class="st">'Sarah Van Dierdonck'</span>, <span class="st">'s.v.dierdonck@duke.edu'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-5"><a href="#cb10-5"></a>  , (<span class="st">'Chengxin Yang'</span>, <span class="st">'chengxin@duke.edu'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section class="slide level2">
@@ -621,7 +621,7 @@ Hilmar Lapp
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Course (Name, Semester, Room_OID) <span class="kw">VALUES</span></span>
-<span id="cb18-2"><a href="#cb18-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2023'</span>, <span class="dv">10</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-2"><a href="#cb18-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2024'</span>, <span class="dv">10</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Error: FOREIGN KEY constraint failed</code></pre>
 </div>
@@ -630,16 +630,16 @@ Hilmar Lapp
 <section id="inserting-foreign-keys" class="slide level2">
 <h2>Inserting foreign keys</h2>
 <ul>
-<li>To insert rows with foreign key values, the statement can include query in place of a literal value:</li>
+<li>To insert rows with foreign key values, the statement can include a query in place of a literal value (a.k.a. <em>subquery</em>):</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Course (Name, Semester, Room_OID) <span class="kw">VALUES</span></span>
-<span id="cb20-2"><a href="#cb20-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2023'</span>,</span>
+<span id="cb20-2"><a href="#cb20-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2024'</span>,</span>
 <span id="cb20-3"><a href="#cb20-3"></a>        (<span class="kw">SELECT</span> Room_OID <span class="kw">FROM</span> Room <span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'Hock 10089'</span>)</span>
 <span id="cb20-4"><a href="#cb20-4"></a>    );</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
-<li>When controlled programmatically, foreign key values are typically first retrieved in a separate query (to enable caching for performance gain).</li>
+<li>In programming, foreign key values are typically first retrieved in a separate query and then included as a literal (<span class="math inline">\(\rightarrow\)</span> more concise and potentially faster INSERT statement).</li>
 </ul>
 </section>
 <section id="updating-rows-basics" class="slide level2">
@@ -649,7 +649,7 @@ Hilmar Lapp
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">UPDATE</span> Room</span>
-<span id="cb21-2"><a href="#cb21-2"></a><span class="kw">SET</span>    Address <span class="op">=</span> <span class="st">'2424 Erwin Rd, Unit 301, Durham, NC 27705'</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="kw">SET</span>    Address <span class="op">=</span> <span class="st">'2424 Erwin Rd, Durham, NC 27705'</span></span>
 <span id="cb21-3"><a href="#cb21-3"></a><span class="kw">WHERE</span>  Name <span class="op">=</span> <span class="st">'Hock 10089'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
@@ -784,32 +784,34 @@ Hilmar Lapp
 </tr>
 <tr class="odd">
 <td style="text-align: left;">5</td>
-<td style="text-align: left;">Sarah Van Dierdonck</td>
-<td style="text-align: left;">s.v.dierdonck@duke.edu</td>
+<td style="text-align: left;">Chengxin Yang</td>
+<td style="text-align: left;">chengxin@duke.edu</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 </section>
-<section id="controlling-columns-to-be-reported" class="slide level2 smaller">
+<section id="controlling-columns-to-be-reported" class="slide level2 smaller scrollable">
 <h2>Controlling columns to be reported</h2>
 <ul>
 <li>We can enumerate and thus limit columns to be reported:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">SELECT</span> Name <span class="kw">FROM</span> Room;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">SELECT</span> Name, Address <span class="kw">FROM</span> Room;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>1 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Name</th>
+<th style="text-align: left;">Address</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Hock 10089</td>
+<td style="text-align: left;">2424 Erwin Rd, Durham, NC 27705</td>
 </tr>
 </tbody>
 </table>
@@ -821,11 +823,11 @@ Hilmar Lapp
 <div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">SELECT</span> Course_OID <span class="kw">AS</span> <span class="kw">ID</span>, </span>
 <span id="cb30-2"><a href="#cb30-2"></a>       Name <span class="op">||</span> <span class="st">' ('</span> <span class="op">||</span> Semester <span class="op">||</span> <span class="st">')'</span> <span class="kw">AS</span> Course_Name,</span>
-<span id="cb30-3"><a href="#cb30-3"></a>       IFNULL(Room_OID, <span class="st">'Unassigned'</span>) <span class="kw">AS</span> Room</span>
+<span id="cb30-3"><a href="#cb30-3"></a>       IFNULL(Room_OID, <span class="op">-</span><span class="dv">1</span>) <span class="kw">AS</span> Room</span>
 <span id="cb30-4"><a href="#cb30-4"></a><span class="kw">FROM</span> Course;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>3 records</caption>
+<caption>4 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">ID</th>
@@ -841,13 +843,18 @@ Hilmar Lapp
 </tr>
 <tr class="even">
 <td style="text-align: left;">2</td>
-<td style="text-align: left;">Biostat 823 (Fall 2023)</td>
+<td style="text-align: left;">Biostat 823 (Fall 2024)</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">3</td>
 <td style="text-align: left;">Biostat 823 (Fall 2021)</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: right;">-1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4</td>
+<td style="text-align: left;">Biostat 823 (Fall 2023)</td>
+<td style="text-align: right;">2</td>
 </tr>
 </tbody>
 </table>
@@ -879,7 +886,7 @@ Hilmar Lapp
 <li>We can use functions; wildcard matches use `LIKE’:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">SELECT</span> Name <span class="kw">from</span> Lesson</span>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> Name <span class="kw">from</span> Lesson   <span class="co">-- DISTINCT makes rows unique</span></span>
 <span id="cb32-2"><a href="#cb32-2"></a><span class="kw">WHERE</span> <span class="fu">UPPER</span>(Name) <span class="kw">LIKE</span> <span class="st">'%DATA%'</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
@@ -907,14 +914,14 @@ Hilmar Lapp
 <li>Conditions can include subqueries</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">SELECT</span> Name <span class="kw">FROM</span> Lesson</span>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> Name <span class="kw">FROM</span> Lesson</span>
 <span id="cb33-2"><a href="#cb33-2"></a><span class="kw">WHERE</span> Instructor_OID <span class="kw">IN</span> (</span>
 <span id="cb33-3"><a href="#cb33-3"></a>   <span class="kw">SELECT</span> Instructor_OID</span>
 <span id="cb33-4"><a href="#cb33-4"></a>   <span class="kw">FROM</span> Instructor <span class="kw">WHERE</span> Name <span class="kw">LIKE</span> <span class="st">'h%'</span></span>
 <span id="cb33-5"><a href="#cb33-5"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>2 records</caption>
+<caption>4 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Name</th>
@@ -926,6 +933,12 @@ Hilmar Lapp
 </tr>
 <tr class="even">
 <td style="text-align: left;">Relational Data Modeling</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Python for AI/ML</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Reproducible Worflows</td>
 </tr>
 </tbody>
 </table>
@@ -941,7 +954,7 @@ Hilmar Lapp
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb34-1"><a href="#cb34-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Course;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>3 records</caption>
+<caption>4 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Course_OID</th>
@@ -960,7 +973,7 @@ Hilmar Lapp
 <tr class="even">
 <td style="text-align: left;">2</td>
 <td style="text-align: left;">Biostat 823</td>
-<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Fall 2024</td>
 <td style="text-align: right;">2</td>
 </tr>
 <tr class="odd">
@@ -968,6 +981,12 @@ Hilmar Lapp
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2021</td>
 <td style="text-align: right;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4</td>
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: right;">2</td>
 </tr>
 </tbody>
 </table>
@@ -1047,23 +1066,23 @@ Hilmar Lapp
 </tr>
 <tr class="even">
 <td style="text-align: left;">Biostat 823</td>
-<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Fall 2024</td>
 <td style="text-align: left;">Containerization</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Biostat 823</td>
-<td style="text-align: left;">Fall 2022</td>
-<td style="text-align: left;">Databases and Graphs</td>
+<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Containerization</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2022</td>
-<td style="text-align: left;">Deep Neural Networks</td>
+<td style="text-align: left;">Databases and Graphs</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Biostat 823</td>
-<td style="text-align: left;">Fall 2023</td>
-<td style="text-align: left;">Expectation-Maximization</td>
+<td style="text-align: left;">Fall 2022</td>
+<td style="text-align: left;">Deep Neural Networks</td>
 </tr>
 </tbody>
 </table>
@@ -1076,23 +1095,31 @@ Hilmar Lapp
 <span id="cb38-2"><a href="#cb38-2"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">INNER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l</span>
 <span id="cb38-3"><a href="#cb38-3"></a>     <span class="kw">USING</span> (Course_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="joining-multiple-tables" class="slide level2 smaller">
+<section id="joining-multiple-tables" class="slide level2 smaller scrollable">
 <h2>Joining multiple tables</h2>
 <ul>
 <li>Table joins can span more than 2 tables:</li>
 </ul>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb39-1"><a href="#cb39-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, r.Name <span class="kw">AS</span> Room, l.Name <span class="kw">AS</span> Lesson, i.Name <span class="kw">AS</span> Instructor</span>
-<span id="cb39-2"><a href="#cb39-2"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">INNER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb39-3"><a href="#cb39-3"></a>     <span class="kw">INNER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
-<span id="cb39-4"><a href="#cb39-4"></a>     <span class="kw">INNER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID)</span>
-<span id="cb39-5"><a href="#cb39-5"></a><span class="kw">LIMIT</span> <span class="dv">7</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-max.print="null">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb39-1"><a href="#cb39-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, <span class="fu">substr</span>(c.Semester,<span class="op">-</span><span class="dv">4</span>) <span class="kw">AS</span> <span class="dt">Year</span>,</span>
+<span id="cb39-2"><a href="#cb39-2"></a>       r.Name <span class="kw">AS</span> Room, l.Name <span class="kw">AS</span> Lesson, i.Name <span class="kw">AS</span> Instructor</span>
+<span id="cb39-3"><a href="#cb39-3"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">INNER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb39-4"><a href="#cb39-4"></a>     <span class="kw">INNER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
+<span id="cb39-5"><a href="#cb39-5"></a>     <span class="kw">INNER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>7 records</caption>
+<caption>15 records</caption>
+<colgroup>
+<col style="width: 16%">
+<col style="width: 6%">
+<col style="width: 15%">
+<col style="width: 43%">
+<col style="width: 17%">
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Course</th>
+<th style="text-align: left;">Year</th>
 <th style="text-align: left;">Room</th>
 <th style="text-align: left;">Lesson</th>
 <th style="text-align: left;">Instructor</th>
@@ -1101,45 +1128,108 @@ Hilmar Lapp
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2024</td>
 <td style="text-align: left;">Hock 10089</td>
 <td style="text-align: left;">Containerization</td>
 <td style="text-align: left;">Hilmar Lapp</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2024</td>
 <td style="text-align: left;">Hock 10089</td>
 <td style="text-align: left;">Relational Data Modeling</td>
 <td style="text-align: left;">Hilmar Lapp</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2024</td>
+<td style="text-align: left;">Hock 10089</td>
+<td style="text-align: left;">Python for AI/ML</td>
+<td style="text-align: left;">Hilmar Lapp</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2024</td>
+<td style="text-align: left;">Hock 10089</td>
+<td style="text-align: left;">Reproducible Worflows</td>
+<td style="text-align: left;">Hilmar Lapp</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2023</td>
+<td style="text-align: left;">Hock 10089</td>
+<td style="text-align: left;">Containerization</td>
+<td style="text-align: left;">Hilmar Lapp</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2023</td>
+<td style="text-align: left;">Hock 10089</td>
+<td style="text-align: left;">Relational Data Modeling</td>
+<td style="text-align: left;">Hilmar Lapp</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2022</td>
 <td style="text-align: left;">Hock 10089</td>
 <td style="text-align: left;">Databases and Graphs</td>
 <td style="text-align: left;">David Page</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2022</td>
 <td style="text-align: left;">Hock 10089</td>
 <td style="text-align: left;">NP-Completeness</td>
 <td style="text-align: left;">David Page</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2022</td>
 <td style="text-align: left;">Hock 10089</td>
 <td style="text-align: left;">Deep Neural Networks</td>
 <td style="text-align: left;">David Page</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2023</td>
 <td style="text-align: left;">Hock 10089</td>
 <td style="text-align: left;">General Linear Model</td>
 <td style="text-align: left;">Kouros Owzar</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2023</td>
 <td style="text-align: left;">Hock 10089</td>
 <td style="text-align: left;">Expectation-Maximization</td>
 <td style="text-align: left;">Kouros Owzar</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2023</td>
+<td style="text-align: left;">Hock 10089</td>
+<td style="text-align: left;">Applications of vector calculus</td>
+<td style="text-align: left;">Kouros Owzar</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2023</td>
+<td style="text-align: left;">Hock 10089</td>
+<td style="text-align: left;">Recurrent neural networks</td>
+<td style="text-align: left;">David Page</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2023</td>
+<td style="text-align: left;">Hock 10089</td>
+<td style="text-align: left;">Transformers</td>
+<td style="text-align: left;">David Page</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">2023</td>
+<td style="text-align: left;">Hock 10089</td>
+<td style="text-align: left;">How ChatGPT works</td>
+<td style="text-align: left;">David Page</td>
 </tr>
 </tbody>
 </table>
@@ -1156,7 +1246,7 @@ Hilmar Lapp
 <span id="cb40-2"><a href="#cb40-2"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>3 records</caption>
+<caption>4 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Course</th>
@@ -1172,13 +1262,18 @@ Hilmar Lapp
 </tr>
 <tr class="even">
 <td style="text-align: left;">Biostat 823</td>
-<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Fall 2024</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2021</td>
 <td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Hock 10089</td>
 </tr>
 </tbody>
 </table>
@@ -1200,7 +1295,7 @@ Hilmar Lapp
 <span id="cb41-4"><a href="#cb41-4"></a>     <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>6 records</caption>
+<caption>7 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Instructor</th>
@@ -1211,21 +1306,33 @@ Hilmar Lapp
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: left;">Chengxin Yang</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">Cliburn Chan</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2021</td>
 <td style="text-align: left;">NA</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2022</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Hock 10089</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Hilmar Lapp</td>
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2024</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
 <tr class="even">
@@ -1239,12 +1346,6 @@ Hilmar Lapp
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: left;">Hock 10089</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Sarah Van Dierdonck</td>
-<td style="text-align: left;">NA</td>
-<td style="text-align: left;">NA</td>
-<td style="text-align: left;">NA</td>
 </tr>
 </tbody>
 </table>
@@ -1263,7 +1364,7 @@ Hilmar Lapp
 <span id="cb42-4"><a href="#cb42-4"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>6 records</caption>
+<caption>7 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Instructor</th>
@@ -1276,35 +1377,41 @@ Hilmar Lapp
 <tr class="odd">
 <td style="text-align: left;">Hilmar Lapp</td>
 <td style="text-align: left;">Biostat 823</td>
-<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Fall 2024</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;">Hilmar Lapp</td>
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Hock 10089</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2022</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">Kouros Owzar</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">Cliburn Chan</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2021</td>
 <td style="text-align: left;">NA</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;">Sarah Van Dierdonck</td>
+<tr class="odd">
+<td style="text-align: left;">Chengxin Yang</td>
 <td style="text-align: left;">NA</td>
 <td style="text-align: left;">NA</td>
 <td style="text-align: left;">NA</td>
@@ -1370,22 +1477,22 @@ Hilmar Lapp
 </div>
 </div>
 </section>
-<section class="slide level2">
-
+<section id="existential-subquery-negation" class="slide level2 smaller">
+<h2>Existential subquery negation</h2>
 <ul>
-<li>This can also be negated: instructors who don’t teach in a given semester</li>
+<li>For example, instructors who <em>don’t</em> teach in a given semester</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb44"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb44-1"><a href="#cb44-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, i.Email</span>
 <span id="cb44-2"><a href="#cb44-2"></a><span class="kw">FROM</span> Instructor <span class="kw">AS</span> i</span>
 <span id="cb44-3"><a href="#cb44-3"></a><span class="kw">WHERE</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> (</span>
 <span id="cb44-4"><a href="#cb44-4"></a>    <span class="kw">SELECT</span> <span class="dv">1</span> <span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb44-5"><a href="#cb44-5"></a>    <span class="kw">WHERE</span> c.Semester <span class="op">=</span> <span class="st">'Fall 2023'</span></span>
+<span id="cb44-5"><a href="#cb44-5"></a>    <span class="kw">WHERE</span> c.Semester <span class="op">=</span> <span class="st">'Fall 2024'</span></span>
 <span id="cb44-6"><a href="#cb44-6"></a>    <span class="kw">AND</span>   l.Instructor_OID <span class="op">=</span> i.Instructor_OID</span>
 <span id="cb44-7"><a href="#cb44-7"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>2 records</caption>
+<caption>4 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Instructor</th>
@@ -1394,12 +1501,20 @@ Hilmar Lapp
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: left;">Kouros Owzar</td>
+<td style="text-align: left;">k.owzar@duke.edu</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">David Page</td>
+<td style="text-align: left;">d.page@duke.edu</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">Cliburn Chan</td>
 <td style="text-align: left;">c.chan@duke.edu</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Sarah Van Dierdonck</td>
-<td style="text-align: left;">s.v.dierdonck@duke.edu</td>
+<td style="text-align: left;">Chengxin Yang</td>
+<td style="text-align: left;">chengxin@duke.edu</td>
 </tr>
 </tbody>
 </table>
@@ -1423,7 +1538,7 @@ Hilmar Lapp
 <span id="cb45-6"><a href="#cb45-6"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name, c.Semester;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>6 records</caption>
+<caption>7 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Instructor</th>
@@ -1435,32 +1550,46 @@ Hilmar Lapp
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: left;">Chengxin Yang</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">Cliburn Chan</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2021</td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2022</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">Hilmar Lapp</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Hilmar Lapp</td>
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2024</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Kouros Owzar</td>
@@ -1468,13 +1597,6 @@ Hilmar Lapp
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Sarah Van Dierdonck</td>
-<td style="text-align: left;">NA</td>
-<td style="text-align: left;">NA</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
@@ -1509,34 +1631,34 @@ Hilmar Lapp
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: left;">Chengxin Yang</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">Cliburn Chan</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2021</td>
 <td style="text-align: right;">2</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: right;">6</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">Hilmar Lapp</td>
 <td style="text-align: left;">Biostat 823</td>
-<td style="text-align: left;">Fall 2023</td>
-<td style="text-align: right;">2</td>
+<td style="text-align: left;">Fall 2024</td>
+<td style="text-align: right;">6</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">Kouros Owzar</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Sarah Van Dierdonck</td>
-<td style="text-align: left;">NA</td>
-<td style="text-align: left;">NA</td>
-<td style="text-align: right;">0</td>
 </tr>
 </tbody>
 </table>
@@ -1557,7 +1679,7 @@ Hilmar Lapp
 <span id="cb47-6"><a href="#cb47-6"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(l.Name) <span class="op">&gt;</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>5 records</caption>
+<caption>6 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Instructor</th>
@@ -1592,6 +1714,12 @@ Hilmar Lapp
 <td style="text-align: right;">2</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;">Hilmar Lapp</td>
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2024</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">Kouros Owzar</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
@@ -1616,12 +1744,12 @@ Hilmar Lapp
 <span id="cb48-6"><a href="#cb48-6"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(l.Name) <span class="op">&gt;</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>5 records</caption>
+<caption>6 records</caption>
 <colgroup>
-<col style="width: 11%">
+<col style="width: 10%">
 <col style="width: 10%">
 <col style="width: 8%">
-<col style="width: 69%">
+<col style="width: 70%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1657,6 +1785,12 @@ Hilmar Lapp
 <td style="text-align: left;">Containerization, Relational Data Modeling</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;">Hilmar Lapp</td>
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2024</td>
+<td style="text-align: left;">Containerization, Relational Data Modeling, Python for AI/ML, Reproducible Worflows</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">Kouros Owzar</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
@@ -1748,12 +1882,12 @@ Hilmar Lapp
 <div class="sourceCode cell-code" id="cb51"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb51-1"><a href="#cb51-1"></a><span class="kw">SELECT</span> Instructor, Course, Semester, Lessons, NumLessons <span class="kw">FROM</span> Instructor_Courses;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>6 records</caption>
+<caption>7 records</caption>
 <colgroup>
-<col style="width: 15%">
+<col style="width: 10%">
 <col style="width: 9%">
 <col style="width: 7%">
-<col style="width: 60%">
+<col style="width: 64%">
 <col style="width: 8%">
 </colgroup>
 <thead>
@@ -1769,40 +1903,47 @@ Hilmar Lapp
 <tr class="odd">
 <td style="text-align: left;">Hilmar Lapp</td>
 <td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2024</td>
+<td style="text-align: left;">Containerization, Relational Data Modeling, Python for AI/ML, Reproducible Worflows</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Hilmar Lapp</td>
+<td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: left;">Containerization, Relational Data Modeling</td>
 <td style="text-align: right;">2</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">Kouros Owzar</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: left;">General Linear Model, Expectation-Maximization, Applications of vector calculus</td>
 <td style="text-align: right;">3</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2022</td>
 <td style="text-align: left;">Databases and Graphs, NP-Completeness, Deep Neural Networks</td>
 <td style="text-align: right;">3</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: left;">Recurrent neural networks, Transformers, How ChatGPT works</td>
 <td style="text-align: right;">3</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">Cliburn Chan</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2021</td>
 <td style="text-align: left;">Python Programming, Python Visualization</td>
 <td style="text-align: right;">2</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;">Sarah Van Dierdonck</td>
+<tr class="odd">
+<td style="text-align: left;">Chengxin Yang</td>
 <td style="text-align: left;">NA</td>
 <td style="text-align: left;">NA</td>
 <td style="text-align: left;">NA</td>
@@ -1825,7 +1966,7 @@ Hilmar Lapp
 <span id="cb52-4"><a href="#cb52-4"></a><span class="kw">GROUP</span> <span class="kw">BY</span> Course, Semester</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>3 records</caption>
+<caption>4 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Course</th>
@@ -1849,6 +1990,11 @@ Hilmar Lapp
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: right;">2.67</td>
 </tr>
+<tr class="even">
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2024</td>
+<td style="text-align: right;">4.00</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1866,7 +2012,7 @@ Hilmar Lapp
 <span id="cb53-4"><a href="#cb53-4"></a><span class="kw">WHERE</span> Course <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
-<caption>5 records</caption>
+<caption>6 records</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Instructor</th>
@@ -1879,28 +2025,34 @@ Hilmar Lapp
 <tr class="odd">
 <td style="text-align: left;">Hilmar Lapp</td>
 <td style="text-align: left;">Biostat 823</td>
-<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Fall 2024</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;">Hilmar Lapp</td>
+<td style="text-align: left;">Biostat 823</td>
+<td style="text-align: left;">Fall 2023</td>
+<td style="text-align: left;">Hock 10089</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">Kouros Owzar</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2022</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">David Page</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2023</td>
 <td style="text-align: left;">Hock 10089</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">Cliburn Chan</td>
 <td style="text-align: left;">Biostat 823</td>
 <td style="text-align: left;">Fall 2021</td>
@@ -1924,11 +2076,11 @@ Hilmar Lapp
 </ul></li>
 <li>In most (OO) programming language environments, SQL database interaction is handled under the hood by ORM (Object-Relational Mapping) libraries
 <ul>
-<li>e.g., <a href="https://www.sqlalchemy.org">sqlalchemy</a> in Python; <code>pandas</code> <a href="https://pandas.pydata.org/docs/user_guide/io.html#io-sql">can read/write from/to a SQL database</a></li>
+<li>e.g., <a href="https://www.sqlalchemy.org">sqlalchemy</a> in Python</li>
 </ul></li>
 <li>Some popular datascience packages for R and Python have SQL database interfaces
 <ul>
-<li>e.g., <a href="https://dbplyr.tidyverse.org">dbplyr</a> in R</li>
+<li>e.g., <a href="https://dbplyr.tidyverse.org">dbplyr</a> in R; in Python, <code>pandas</code> <a href="https://pandas.pydata.org/docs/user_guide/io.html#io-sql">can read/write from/to a SQL database</a></li>
 </ul></li>
 <li><a href="https://www.sqlite.org/docs.html">SQLite Documentation</a></li>
 <li>Joe Celko, <em>Joe Celko’s SQL for Smarties: Advanced SQL Programming</em>. Morgan &amp; Kaufmann, 2015</li>
