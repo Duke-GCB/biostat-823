@@ -2,7 +2,7 @@
 title: "Biostat 823 - Relational data modeling"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Sep 3, 2023"
+date: "Sep 3, 2024"
 format:
   revealjs:
     slide-number: true
@@ -25,14 +25,14 @@ knitr:
     -   The set of attributes that uniquely identify the entity is the *natural key*.
 -   Relationships between entities
 
-## Logical vs Physical E-R model I
+## Logical vs Physical E-R model I {.smaller}
 
 ::: columns
 ::: {.column width="50%"}
 Logical data model:
 
 -   All entities (including keys), their attributes, and relationships (including cardinalities)
--   Independent of database imnplementation
+-   Independent of database implementation
 -   Abstract model
 :::
 
@@ -57,7 +57,7 @@ Physical data model:
 | Description                                                 | Symbol                                                                   |
 |-------------------------------------------------------|-----------------|
 | Ring and dash: Minimum zero, maximum one (optional)         | <img src="images/SQL/ring-and-dash.png" style="vertical-align: bottom"/> |
-| Dash and dash: Minimum one, maximum one (mandatory)         | <img src="images/SQL/dash-and-dash.png" style="vertical-align: bottom"/> |
+| Dash and dash: Exactly one (mandatory)         | <img src="images/SQL/dash-and-dash.png" style="vertical-align: bottom"/> |
 | Ring and crow's foot: Minimum zero, maximum many (optional) | <img src="images/SQL/ring-and-crow.png" style="vertical-align: bottom"/> |
 | Dash and crow's foot: Minimum one, maximum many (mandatory) | <img src="images/SQL/dash-and-crow.png" style="vertical-align: bottom"/> |
 
@@ -214,7 +214,7 @@ erDiagram
 ## Database normalization
 
 -   Goal is to minimize data redundancy, improve data integrity, prevent anomalies
-    -   Enable a database to enforce data integrity through uniqueness, not-null, and referential integrity constraints
+    -   Enable a database to _enforce data integrity_ through uniqueness, not-null, and referential integrity constraints
 -   Formalized as *normal forms*
     -   [1st](https://en.wikipedia.org/wiki/First_normal_form), [2nd](https://en.wikipedia.org/wiki/Second_normal_form), and [3rd](https://en.wikipedia.org/wiki/Second_normal_form) Forms are most widely practiced
     -   Stated initially by Codd in 1970 (1NF) and 1971 (2NF, 3NF)
@@ -296,7 +296,7 @@ erDiagram
 
 > A relation R is in 3NF *iff* it is in 2NF and every non-prime attribute of R is non-transitively dependent on every key of R.
 
-Any attribute that is not part of a natural key depends **directly** on every key.
+For every table, any attribute that is not part of a natural key depends *directly* on every key for the table.
 
 ::: {layout-ncol="2"}
 ```{mermaid}

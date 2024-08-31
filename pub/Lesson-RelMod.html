@@ -11,7 +11,7 @@
   <meta name="generator" content="quarto-1.3.353">
 
   <meta name="author" content="Hilmar Lapp">
-  <meta name="dcterms.date" content="2023-09-03">
+  <meta name="dcterms.date" content="2024-09-03">
   <title>Biostat 823 - Relational data modeling</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -342,7 +342,7 @@ Hilmar Lapp
     </div>
 </div>
 
-  <p class="date">2023-09-03</p>
+  <p class="date">2024-09-03</p>
 </section>
 <section id="relational-data-model" class="slide level2">
 <h2>Relational data model</h2>
@@ -363,14 +363,14 @@ Hilmar Lapp
 <li>Relationships between entities</li>
 </ul>
 </section>
-<section id="logical-vs-physical-e-r-model-i" class="slide level2">
+<section id="logical-vs-physical-e-r-model-i" class="slide level2 smaller">
 <h2>Logical vs Physical E-R model I</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <p>Logical data model:</p>
 <ul>
 <li>All entities (including keys), their attributes, and relationships (including cardinalities)</li>
-<li>Independent of database imnplementation</li>
+<li>Independent of database implementation</li>
 <li>Abstract model</li>
 </ul>
 </div><div class="column" style="width:50%;">
@@ -411,7 +411,7 @@ Hilmar Lapp
 <td><img src="images/SQL/ring-and-dash.png" style="vertical-align: bottom"></td>
 </tr>
 <tr class="even">
-<td>Dash and dash: Minimum one, maximum one (mandatory)</td>
+<td>Dash and dash: Exactly one (mandatory)</td>
 <td><img src="images/SQL/dash-and-dash.png" style="vertical-align: bottom"></td>
 </tr>
 <tr class="odd">
@@ -660,7 +660,7 @@ Hilmar Lapp
 <ul>
 <li>Goal is to minimize data redundancy, improve data integrity, prevent anomalies
 <ul>
-<li>Enable a database to enforce data integrity through uniqueness, not-null, and referential integrity constraints</li>
+<li>Enable a database to <em>enforce data integrity</em> through uniqueness, not-null, and referential integrity constraints</li>
 </ul></li>
 <li>Formalized as <em>normal forms</em>
 <ul>
@@ -777,7 +777,7 @@ Hilmar Lapp
 <blockquote>
 <p>A relation R is in 3NF <em>iff</em> it is in 2NF and every non-prime attribute of R is non-transitively dependent on every key of R.</p>
 </blockquote>
-<p>Any attribute that is not part of a natural key depends <strong>directly</strong> on every key.</p>
+<p>For every table, any attribute that is not part of a natural key depends <em>directly</em> on every key for the table.</p>
 <div class="quarto-layout-panel">
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div class="cell quarto-layout-cell" data-reveal="true" style="flex-basis: 50.0%;justify-content: center;">
