@@ -36,7 +36,7 @@ Schulte, E., Davison, D., Dye, T., & Dominik, C. (2012). A Multi-Language Comput
 
 ## Code not paper is the scholarship
 
-> An article about computational science in a scientific publication is not the schol- arship itself, it is merely advertising of the scholarship. The actual scholarship is the complete software development environment and complete set of instructions which generated the figures.
+> An article about computational science in a scientific publication is not the scholarship itself, it is merely advertising of the scholarship. The actual scholarship is the complete software development environment and complete set of instructions which generated the figures.
 
 ::: aside
 Buckheit JB, Donoho DL (1995). "WaveLab and Reproducible Research." In A Antoniadis, G Oppenheim (eds.), Wavelets and Statistics, volume 103 of Lecture Notes in Statistics, pp. 55--81. Springer-Verlag, New York. doi:[10.1007/978-1-4612-2544-7_5](https://doi.org/10.1007/978-1-4612-2544-7_5)
@@ -164,6 +164,6 @@ One report document, rendered to many different output formats
 -   List of [Literate Programming environments on Wikipedia](https://en.wikipedia.org/wiki/Literate_programming#Literate_programming_practices)
 -   Xie Y, Allaire J, Grolemund G (2018). [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown). Chapman and Hall/CRC, Boca Raton, Florida. ISBN 9781138359338
 -   Resul Umit (2022) [Writing Reproducible Research Papers with R Markdown](https://resulumit.com/teaching/rmd_workshop.html)
--   Chapters "[Jupyter Notebook for Open Science](https://reproducible-analysis-workshop.readthedocs.io/en/latest/4.Jupyter-Notebook.html)", "[R for Reproducible Scientific Analysis (Jupyter)](https://reproducible-analysis-workshop.readthedocs.io/en/latest/5.Jupyter-R.html)", and "[R for Reproducible Scientific Analysis (RMarkdown / knitr)](https://reproducible-analysis-workshop.readthedocs.io/en/latest/6.RMarkdown-knitr.html)" in "[Reproducible analysis and Research Transparency Workshop (2017)](https://reproducible-analysis-workshop.readthedocs.io/en/latest/)
+-   Chapters "[Jupyter Notebook for Open Science](https://reproducible-analysis-workshop.readthedocs.io/en/latest/4.Jupyter-Notebook.html)", "[R for Reproducible Scientific Analysis (Jupyter)](https://reproducible-analysis-workshop.readthedocs.io/en/latest/5.Jupyter-R.html)", and "[R for Reproducible Scientific Analysis (RMarkdown / knitr)](https://reproducible-analysis-workshop.readthedocs.io/en/latest/6.RMarkdown-knitr.html)" in [Reproducible analysis and Research Transparency Workshop (2017)](https://reproducible-analysis-workshop.readthedocs.io/en/latest/)
 -   J.M. Perkel (2018). Why Jupyter is data scientists' computational notebook of choice. Nature 563, 145-146. doi:<https://doi.org/10.1038/d41586-018-07196-1>
 -   Rule, Adam, Amanda Birmingham, Cristal Zuniga, Ilkay Altintas, Shih-Cheng Huang, Rob Knight, Niema Moshiri, et al. 2019. "Ten Simple Rules for Writing and Sharing Computational Analyses in Jupyter Notebooks." PLOS Computational Biology 15 (7): e1007007. <https://doi.org/10.1371/journal.pcbi.1007007>
