@@ -30,15 +30,23 @@ knitr:
 -   We use [SQLite](https://www.sqlite.org/) as the RDBMS, but where possible try to stick to SQL-92, which should work under any modern RDBMS
 -   We try to point out where constructs might need modification for other RDBMSs.
 
-```{r label=setupSQLite, include=FALSE}
-library(RSQLite)
+## Literate Programming with SQL {.smaller}
+
+Knitr (the workhorse behind rendering Rmarkdown) supports a variety of "engines", including SQL:
+```{r label=knitrEngines}
+names(knitr::knit_engines$get())
+```
+
+In R, the [`RSQLite` package](https://rsqlite.r-dbi.org) implements a driver for SQLite to enable the API of the [`DBI` package](https://dbi.r-dbi.org). Here we create an in-memory database, and make the connection object the default for every chunk:
+```{r label=setupSQLite}
 library(DBI)
+
 db <- dbConnect(RSQLite::SQLite(), ":memory:")
 
 knitr::opts_chunk$set(connection = "db")
 ```
 
-<!-- ensure foreign key enforcement is enabled -->
+<!-- ensure foreign key enforcement is enabled, they can be off by default -->
 ```{sql label=enforceFKs, echo=FALSE}
 PRAGMA foreign_keys = ON;
 ```
@@ -50,6 +58,38 @@ PRAGMA foreign_keys = ON;
     -   `{CREATE, DROP} VIEW`
     -   `{CREATE, DROP} INDEX`
     -   `DROP {TABLE, VIEW, INDEX}`
+
+## E-R Model
+
+We'll be implementing (i.e., _instantiating a physical model_) of this E-R model:
+
+```{mermaid}
+erDiagram
+    Instructor        ||--|{ Lesson : teaches
+    Course            ||--|{ Lesson : "consists of"
+    Room              |o--o{ Course : "used for"
+    Instructor {
+      integer Instructor_OID PK
+      string  Name
+      string  Email
+    }
+    Course {
+      integer Course_OID PK
+      string Name
+      string Semester
+      integer Room_OID FK
+    }
+    Room {
+      integer Room_OID PK
+      string Name
+      string Address
+    }
+    Lesson {
+      string Name
+      integer Instructor_OID FK
+      integer Course_OID FK
+    }
+```
 
 ## Create and define entities
 

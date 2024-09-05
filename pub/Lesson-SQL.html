@@ -385,6 +385,9 @@
       margin-right: 0; 
     }
   </style>
+  <script src="Lesson-SQL_files/libs/quarto-diagram/mermaid.min.js"></script>
+  <script src="Lesson-SQL_files/libs/quarto-diagram/mermaid-init.js"></script>
+  <link href="Lesson-SQL_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 </head>
 <body class="quarto-light">
   <div class="reveal">
@@ -431,7 +434,33 @@ Hilmar Lapp
 <li>We use <a href="https://www.sqlite.org/">SQLite</a> as the RDBMS, but where possible try to stick to SQL-92, which should work under any modern RDBMS</li>
 <li>We try to point out where constructs might need modification for other RDBMSs.</li>
 </ul>
-<!-- ensure foreign key enforcement is enabled -->
+</section>
+<section id="literate-programming-with-sql" class="slide level2 smaller">
+<h2>Literate Programming with SQL</h2>
+<p>Knitr (the workhorse behind rendering Rmarkdown) supports a variety of “engines”, including SQL:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">names</span>(knitr<span class="sc">::</span>knit_engines<span class="sc">$</span><span class="fu">get</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "awk"       "bash"      "coffee"    "gawk"      "groovy"    "haskell"  
+ [7] "lein"      "mysql"     "node"      "octave"    "perl"      "php"      
+[13] "psql"      "Rscript"   "ruby"      "sas"       "scala"     "sed"      
+[19] "sh"        "stata"     "zsh"       "asis"      "asy"       "block"    
+[25] "block2"    "bslib"     "c"         "cat"       "cc"        "comment"  
+[31] "css"       "ditaa"     "dot"       "embed"     "eviews"    "exec"     
+[37] "fortran"   "fortran95" "go"        "highlight" "js"        "julia"    
+[43] "python"    "R"         "Rcpp"      "sass"      "scss"      "sql"      
+[49] "stan"      "targets"   "tikz"      "verbatim"  "ojs"       "mermaid"  </code></pre>
+</div>
+</div>
+<p>In R, the <a href="https://rsqlite.r-dbi.org"><code>RSQLite</code> package</a> implements a driver for SQLite to enable the API of the <a href="https://dbi.r-dbi.org"><code>DBI</code> package</a>. Here we create an in-memory database, and make the connection object the default for every chunk:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">library</span>(DBI)</span>
+<span id="cb3-2"><a href="#cb3-2"></a></span>
+<span id="cb3-3"><a href="#cb3-3"></a>db <span class="ot">&lt;-</span> <span class="fu">dbConnect</span>(RSQLite<span class="sc">::</span><span class="fu">SQLite</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4"></a></span>
+<span id="cb3-5"><a href="#cb3-5"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">connection =</span> <span class="st">"db"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<!-- ensure foreign key enforcement is enabled, they can be off by default -->
 </section>
 <section id="ddl" class="slide level2">
 <h2>DDL</h2>
@@ -445,18 +474,56 @@ Hilmar Lapp
 </ul></li>
 </ul>
 </section>
+<section id="e-r-model" class="slide level2">
+<h2>E-R Model</h2>
+<p>We’ll be implementing (i.e., <em>instantiating a physical model</em>) of this E-R model:</p>
+<div class="cell" data-reveal="true">
+<div class="cell-output-display">
+<div>
+<div>
+<pre class="mermaid mermaid-js">erDiagram
+    Instructor        ||--|{ Lesson : teaches
+    Course            ||--|{ Lesson : "consists of"
+    Room              |o--o{ Course : "used for"
+    Instructor {
+      integer Instructor_OID PK
+      string  Name
+      string  Email
+    }
+    Course {
+      integer Course_OID PK
+      string Name
+      string Semester
+      integer Room_OID FK
+    }
+    Room {
+      integer Room_OID PK
+      string Name
+      string Address
+    }
+    Lesson {
+      string Name
+      integer Instructor_OID FK
+      integer Course_OID FK
+    }
+</pre>
+</div>
+</div>
+</div>
+</div>
+</section>
 <section id="create-and-define-entities" class="slide level2">
 <h2>Create and define entities</h2>
 <ul>
 <li>We use <code>CREATE TABLE</code> to define (create) relations (entities in an E-R model), along with their constraints:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">-- Double minus is the standard syntax for comment (single-line).</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Instructor (</span>
-<span id="cb1-3"><a href="#cb1-3"></a>  Instructor_OID <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>, <span class="co">-- surrogate PK (implies NOT NULL)</span></span>
-<span id="cb1-4"><a href="#cb1-4"></a>  Name <span class="dt">VARCHAR</span>(<span class="dv">128</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,         <span class="co">-- by default, NULL is allowed</span></span>
-<span id="cb1-5"><a href="#cb1-5"></a>  Email <span class="dt">VARCHAR</span>(<span class="dv">128</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">UNIQUE</span>  <span class="co">-- natural primary key</span></span>
-<span id="cb1-6"><a href="#cb1-6"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1"></a><span class="co">-- Double minus is the standard syntax for comment (single-line).</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Instructor (</span>
+<span id="cb4-3"><a href="#cb4-3"></a>  Instructor_OID <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>, <span class="co">-- surrogate PK (implies NOT NULL)</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>  Name <span class="dt">VARCHAR</span>(<span class="dv">128</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,         <span class="co">-- by default, NULL is allowed</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a>  Email <span class="dt">VARCHAR</span>(<span class="dv">128</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">UNIQUE</span>  <span class="co">-- natural primary key</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 <aside><div>
@@ -465,32 +532,32 @@ Hilmar Lapp
 <section id="composite-natural-keys" class="slide level2">
 <h2>Composite natural keys</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Course (</span>
-<span id="cb2-2"><a href="#cb2-2"></a>  Course_OID <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
-<span id="cb2-3"><a href="#cb2-3"></a>  Name <span class="dt">VARCHAR</span>(<span class="dv">64</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
-<span id="cb2-4"><a href="#cb2-4"></a>  Semester <span class="dt">VARCHAR</span>(<span class="dv">16</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
-<span id="cb2-5"><a href="#cb2-5"></a>  <span class="kw">UNIQUE</span> (Name, Semester) </span>
-<span id="cb2-6"><a href="#cb2-6"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Course (</span>
+<span id="cb5-2"><a href="#cb5-2"></a>  Course_OID <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb5-3"><a href="#cb5-3"></a>  Name <span class="dt">VARCHAR</span>(<span class="dv">64</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb5-4"><a href="#cb5-4"></a>  Semester <span class="dt">VARCHAR</span>(<span class="dv">16</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb5-5"><a href="#cb5-5"></a>  <span class="kw">UNIQUE</span> (Name, Semester) </span>
+<span id="cb5-6"><a href="#cb5-6"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Note that <em>table constraints</em> must be at the end of a table definition.</p>
 </section>
 <section id="foreign-key-constraints" class="slide level2">
 <h2>Foreign key constraints</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Lesson (</span>
-<span id="cb3-2"><a href="#cb3-2"></a>  Name <span class="dt">VARCHAR</span>(<span class="dv">64</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
-<span id="cb3-3"><a href="#cb3-3"></a>  Instructor_OID <span class="dt">INTEGER</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a>      <span class="co">-- foreign key constraint can be part of column definition</span></span>
-<span id="cb3-5"><a href="#cb3-5"></a>      <span class="kw">REFERENCES</span> Instructor (Instructor_OID)</span>
-<span id="cb3-6"><a href="#cb3-6"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">RESTRICT</span>,</span>
-<span id="cb3-7"><a href="#cb3-7"></a>  Course_OID <span class="dt">INTEGER</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
-<span id="cb3-8"><a href="#cb3-8"></a>  <span class="co">-- primary key can be composite, and be defined separately</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a>  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (Name, Course_OID),</span>
-<span id="cb3-10"><a href="#cb3-10"></a>  <span class="co">-- foreign key constraints can be defined separately</span></span>
-<span id="cb3-11"><a href="#cb3-11"></a>  <span class="kw">FOREIGN</span> <span class="kw">KEY</span> (Course_OID)</span>
-<span id="cb3-12"><a href="#cb3-12"></a>      <span class="kw">REFERENCES</span> Course (Course_OID)</span>
-<span id="cb3-13"><a href="#cb3-13"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span></span>
-<span id="cb3-14"><a href="#cb3-14"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Lesson (</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  Name <span class="dt">VARCHAR</span>(<span class="dv">64</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb6-3"><a href="#cb6-3"></a>  Instructor_OID <span class="dt">INTEGER</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>      <span class="co">-- foreign key constraint can be part of column definition</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a>      <span class="kw">REFERENCES</span> Instructor (Instructor_OID)</span>
+<span id="cb6-6"><a href="#cb6-6"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">RESTRICT</span>,</span>
+<span id="cb6-7"><a href="#cb6-7"></a>  Course_OID <span class="dt">INTEGER</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb6-8"><a href="#cb6-8"></a>  <span class="co">-- primary key can be composite, and be defined separately</span></span>
+<span id="cb6-9"><a href="#cb6-9"></a>  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (Name, Course_OID),</span>
+<span id="cb6-10"><a href="#cb6-10"></a>  <span class="co">-- foreign key constraints can be defined separately</span></span>
+<span id="cb6-11"><a href="#cb6-11"></a>  <span class="kw">FOREIGN</span> <span class="kw">KEY</span> (Course_OID)</span>
+<span id="cb6-12"><a href="#cb6-12"></a>      <span class="kw">REFERENCES</span> Course (Course_OID)</span>
+<span id="cb6-13"><a href="#cb6-13"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span></span>
+<span id="cb6-14"><a href="#cb6-14"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>For “weak” entities, natural PK will include a foreign key.</li>
@@ -505,16 +572,16 @@ Hilmar Lapp
 <li>But they also increase transaction cost</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> Instructor_Name_Idx <span class="kw">ON</span> Instructor (Name);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> Instructor_Name_Idx <span class="kw">ON</span> Instructor (Name);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></li>
 <li><p>Indexes can add a uniqueness constraint (<code>CREATE UNIQUE INDEX</code>), but better practice is to include those in the table definition</p></li>
 <li><p>For transaction performance, columns in <code>FOREIGN KEY</code> constraints should typically be indexed</p></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> Lesson_Course_Idx <span class="kw">ON</span> Lesson (Course_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> Lesson_Course_Idx <span class="kw">ON</span> Lesson (Course_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> Lesson_Instructor_Idx <span class="kw">ON</span> Lesson (Instructor_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> Lesson_Instructor_Idx <span class="kw">ON</span> Lesson (Instructor_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="altering-table-definitions" class="slide level2">
@@ -523,19 +590,19 @@ Hilmar Lapp
 <li>Add table for rooms:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Room (</span>
-<span id="cb7-2"><a href="#cb7-2"></a>  Room_OID <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
-<span id="cb7-3"><a href="#cb7-3"></a>  Name <span class="dt">VARCHAR</span>(<span class="dv">32</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">UNIQUE</span>,</span>
-<span id="cb7-4"><a href="#cb7-4"></a>  Address <span class="dt">VARCHAR</span>(<span class="dv">128</span>)</span>
-<span id="cb7-5"><a href="#cb7-5"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Room (</span>
+<span id="cb10-2"><a href="#cb10-2"></a>  Room_OID <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb10-3"><a href="#cb10-3"></a>  Name <span class="dt">VARCHAR</span>(<span class="dv">32</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">UNIQUE</span>,</span>
+<span id="cb10-4"><a href="#cb10-4"></a>  Address <span class="dt">VARCHAR</span>(<span class="dv">128</span>)</span>
+<span id="cb10-5"><a href="#cb10-5"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>Now add a foreign key to the courses table:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">ALTER</span> <span class="kw">TABLE</span> Course</span>
-<span id="cb8-2"><a href="#cb8-2"></a>  <span class="kw">ADD</span> <span class="kw">COLUMN</span> Room_OID <span class="dt">INTEGER</span></span>
-<span id="cb8-3"><a href="#cb8-3"></a>  <span class="kw">REFERENCES</span> Room (Room_OID) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">SET</span> <span class="kw">NULL</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">ALTER</span> <span class="kw">TABLE</span> Course</span>
+<span id="cb11-2"><a href="#cb11-2"></a>  <span class="kw">ADD</span> <span class="kw">COLUMN</span> Room_OID <span class="dt">INTEGER</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a>  <span class="kw">REFERENCES</span> Room (Room_OID) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">SET</span> <span class="kw">NULL</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>Altering table definitions is usually done as part of a schema migration.</li>
@@ -561,19 +628,19 @@ Hilmar Lapp
 </ul></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Instructor (Name, Email) <span class="kw">VALUES</span> (</span>
-<span id="cb9-2"><a href="#cb9-2"></a>  <span class="st">'Hilmar Lapp'</span>, <span class="st">'h.lapp@duke.edu'</span></span>
-<span id="cb9-3"><a href="#cb9-3"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Instructor (Name, Email) <span class="kw">VALUES</span> (</span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="st">'Hilmar Lapp'</span>, <span class="st">'h.lapp@duke.edu'</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>Multiple rows can be specified:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Instructor (Name, Email) <span class="kw">VALUES</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a>    (<span class="st">'Kouros Owzar'</span>, <span class="st">'k.owzar@duke.edu'</span>)</span>
-<span id="cb10-3"><a href="#cb10-3"></a>  , (<span class="st">'David Page'</span>, <span class="st">'d.page@duke.edu'</span>)</span>
-<span id="cb10-4"><a href="#cb10-4"></a>  , (<span class="st">'Cliburn Chan'</span>, <span class="st">'c.chan@duke.edu'</span>)</span>
-<span id="cb10-5"><a href="#cb10-5"></a>  , (<span class="st">'Chengxin Yang'</span>, <span class="st">'chengxin@duke.edu'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Instructor (Name, Email) <span class="kw">VALUES</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a>    (<span class="st">'Kouros Owzar'</span>, <span class="st">'k.owzar@duke.edu'</span>)</span>
+<span id="cb13-3"><a href="#cb13-3"></a>  , (<span class="st">'David Page'</span>, <span class="st">'d.page@duke.edu'</span>)</span>
+<span id="cb13-4"><a href="#cb13-4"></a>  , (<span class="st">'Cliburn Chan'</span>, <span class="st">'c.chan@duke.edu'</span>)</span>
+<span id="cb13-5"><a href="#cb13-5"></a>  , (<span class="st">'Chengxin Yang'</span>, <span class="st">'chengxin@duke.edu'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section class="slide level2">
@@ -582,17 +649,17 @@ Hilmar Lapp
 <li>NULLable columns can be omitted, or provided as NULL</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Room (Name) <span class="kw">VALUES</span> (<span class="st">'North 100'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Room (Name) <span class="kw">VALUES</span> (<span class="st">'North 100'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Room (Name, Address) <span class="kw">VALUES</span> (<span class="st">'Hock 10089'</span>, <span class="kw">NULL</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Room (Name, Address) <span class="kw">VALUES</span> (<span class="st">'Hock 10089'</span>, <span class="kw">NULL</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>This extends to optional foreign keys</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Course (Name, Semester) <span class="kw">VALUES</span></span>
-<span id="cb13-2"><a href="#cb13-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2022'</span>); </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Course (Name, Semester) <span class="kw">VALUES</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2022'</span>); </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="violating-constraints-results-in-error" class="slide level2">
@@ -601,8 +668,8 @@ Hilmar Lapp
 <li>Violating a uniqueness constraint (natural primary key)</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Instructor (Name, Email) <span class="kw">VALUES</span></span>
-<span id="cb14-2"><a href="#cb14-2"></a>    (<span class="st">'H. Lapp'</span>, <span class="st">'h.lapp@duke.edu'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Instructor (Name, Email) <span class="kw">VALUES</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a>    (<span class="st">'H. Lapp'</span>, <span class="st">'h.lapp@duke.edu'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Error: UNIQUE constraint failed: Instructor.Email</code></pre>
 </div>
@@ -611,7 +678,7 @@ Hilmar Lapp
 <li>Violating a NOT NULL constraint (required value)</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Instructor (Email) <span class="kw">VALUES</span> (<span class="st">'first.last@duke.edu'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Instructor (Email) <span class="kw">VALUES</span> (<span class="st">'first.last@duke.edu'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Error: NOT NULL constraint failed: Instructor.Name</code></pre>
 </div>
@@ -620,8 +687,8 @@ Hilmar Lapp
 <li>Violating a foreign key constraint (non-existent row)</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Course (Name, Semester, Room_OID) <span class="kw">VALUES</span></span>
-<span id="cb18-2"><a href="#cb18-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2024'</span>, <span class="dv">10</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Course (Name, Semester, Room_OID) <span class="kw">VALUES</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2024'</span>, <span class="dv">10</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Error: FOREIGN KEY constraint failed</code></pre>
 </div>
@@ -633,10 +700,10 @@ Hilmar Lapp
 <li>To insert rows with foreign key values, the statement can include a query in place of a literal value (a.k.a. <em>subquery</em>):</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Course (Name, Semester, Room_OID) <span class="kw">VALUES</span></span>
-<span id="cb20-2"><a href="#cb20-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2024'</span>,</span>
-<span id="cb20-3"><a href="#cb20-3"></a>        (<span class="kw">SELECT</span> Room_OID <span class="kw">FROM</span> Room <span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'Hock 10089'</span>)</span>
-<span id="cb20-4"><a href="#cb20-4"></a>    );</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> Course (Name, Semester, Room_OID) <span class="kw">VALUES</span></span>
+<span id="cb23-2"><a href="#cb23-2"></a>    (<span class="st">'Biostat 823'</span>, <span class="st">'Fall 2024'</span>,</span>
+<span id="cb23-3"><a href="#cb23-3"></a>        (<span class="kw">SELECT</span> Room_OID <span class="kw">FROM</span> Room <span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'Hock 10089'</span>)</span>
+<span id="cb23-4"><a href="#cb23-4"></a>    );</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>In programming, foreign key values are typically first retrieved in a separate query and then included as a literal (<span class="math inline">\(\rightarrow\)</span> more concise and potentially faster INSERT statement).</li>
@@ -648,17 +715,17 @@ Hilmar Lapp
 <li>The common case is to update specific row(s) matching a condition:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">UPDATE</span> Room</span>
-<span id="cb21-2"><a href="#cb21-2"></a><span class="kw">SET</span>    Address <span class="op">=</span> <span class="st">'2424 Erwin Rd, Durham, NC 27705'</span></span>
-<span id="cb21-3"><a href="#cb21-3"></a><span class="kw">WHERE</span>  Name <span class="op">=</span> <span class="st">'Hock 10089'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">UPDATE</span> Room</span>
+<span id="cb24-2"><a href="#cb24-2"></a><span class="kw">SET</span>    Address <span class="op">=</span> <span class="st">'2424 Erwin Rd, Durham, NC 27705'</span></span>
+<span id="cb24-3"><a href="#cb24-3"></a><span class="kw">WHERE</span>  Name <span class="op">=</span> <span class="st">'Hock 10089'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>The <code>WHERE</code> clause is optional; if left off, updates <em>all</em> rows.</li>
 <li>Updates that create a constraint violation result in error:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb22-1"><a href="#cb22-1"></a><span class="kw">UPDATE</span> Instructor</span>
-<span id="cb22-2"><a href="#cb22-2"></a><span class="kw">SET</span>    Email <span class="op">=</span> <span class="st">'first.last@duke.edu'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">UPDATE</span> Instructor</span>
+<span id="cb25-2"><a href="#cb25-2"></a><span class="kw">SET</span>    Email <span class="op">=</span> <span class="st">'first.last@duke.edu'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Error: UNIQUE constraint failed: Instructor.Email</code></pre>
 </div>
@@ -670,9 +737,9 @@ Hilmar Lapp
 <li>Similar to <code>INSERT</code> statements, <code>UPDATE</code> statements can also use a query in place of a literal value to retrieve a value dynamically:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">UPDATE</span> Course</span>
-<span id="cb24-2"><a href="#cb24-2"></a><span class="kw">SET</span>    Room_OID <span class="op">=</span> (<span class="kw">SELECT</span> Room_OID <span class="kw">FROM</span> Room <span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'Hock 10089'</span>)</span>
-<span id="cb24-3"><a href="#cb24-3"></a><span class="kw">WHERE</span>  Name <span class="op">=</span> <span class="st">'Biostat 823'</span> <span class="kw">AND</span> Semester <span class="op">=</span> <span class="st">'Fall 2022'</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">UPDATE</span> Course</span>
+<span id="cb27-2"><a href="#cb27-2"></a><span class="kw">SET</span>    Room_OID <span class="op">=</span> (<span class="kw">SELECT</span> Room_OID <span class="kw">FROM</span> Room <span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'Hock 10089'</span>)</span>
+<span id="cb27-3"><a href="#cb27-3"></a><span class="kw">WHERE</span>  Name <span class="op">=</span> <span class="st">'Biostat 823'</span> <span class="kw">AND</span> Semester <span class="op">=</span> <span class="st">'Fall 2022'</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="deleting-rows-basics" class="slide level2">
@@ -681,16 +748,16 @@ Hilmar Lapp
 <li>The common case is to delete row(s) matching a specific condition:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">DELETE</span> <span class="kw">FROM</span> Room</span>
-<span id="cb25-2"><a href="#cb25-2"></a><span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'North 100'</span>; </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb28-1"><a href="#cb28-1"></a><span class="kw">DELETE</span> <span class="kw">FROM</span> Room</span>
+<span id="cb28-2"><a href="#cb28-2"></a><span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'North 100'</span>; </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li><p>The <code>WHERE</code> clause is optional; if left off, <em>all</em> rows are deleted.</p></li>
 <li><p>Note that for both <code>UPDATE</code> and <code>DELETE</code>, no rows matching the condition is not an error.</p></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb26-1"><a href="#cb26-1"></a><span class="kw">DELETE</span> <span class="kw">FROM</span> Instructor</span>
-<span id="cb26-2"><a href="#cb26-2"></a><span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'John Smith'</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">DELETE</span> <span class="kw">FROM</span> Instructor</span>
+<span id="cb29-2"><a href="#cb29-2"></a><span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'John Smith'</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="foreign-key-enforcement-on-delete" class="slide level2">
@@ -698,24 +765,24 @@ Hilmar Lapp
 <ul>
 <li>Enforcement action depends on FK constraint definition:</li>
 </ul>
-<div class="sourceCode" id="cb27" data-code-line-numbers="5,6,9,10,16,17"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Lesson (</span>
-<span id="cb27-2"><a href="#cb27-2"></a>  <span class="co">-- ... (non-foreign key columns etc)</span></span>
-<span id="cb27-3"><a href="#cb27-3"></a>  Course_OID <span class="dt">INTEGER</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span>
-<span id="cb27-4"><a href="#cb27-4"></a>      <span class="kw">REFERENCES</span> Course (Course_OID)</span>
-<span id="cb27-5"><a href="#cb27-5"></a>      <span class="co">-- deleting a course cascades to deleting all its lessons</span></span>
-<span id="cb27-6"><a href="#cb27-6"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
-<span id="cb27-7"><a href="#cb27-7"></a>  Instructor_OID <span class="dt">INTEGER</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span>
-<span id="cb27-8"><a href="#cb27-8"></a>      <span class="kw">REFERENCES</span> Instructor (Instructor_OID)</span>
-<span id="cb27-9"><a href="#cb27-9"></a>      <span class="co">-- prevent deletion of instructor if they are assigned to lessons</span></span>
-<span id="cb27-10"><a href="#cb27-10"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">RESTRICT</span></span>
-<span id="cb27-11"><a href="#cb27-11"></a>);</span>
-<span id="cb27-12"><a href="#cb27-12"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Course (</span>
-<span id="cb27-13"><a href="#cb27-13"></a>  <span class="co">-- ... (non-foreign key columns etc)</span></span>
-<span id="cb27-14"><a href="#cb27-14"></a>  Room_OID <span class="dt">INTEGER</span></span>
-<span id="cb27-15"><a href="#cb27-15"></a>      <span class="kw">REFERENCES</span> Room (Room_OID)</span>
-<span id="cb27-16"><a href="#cb27-16"></a>      <span class="co">-- if FK is optional, setting to NULL could be appropriate</span></span>
-<span id="cb27-17"><a href="#cb27-17"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">SET</span> <span class="kw">NULL</span></span>
-<span id="cb27-18"><a href="#cb27-18"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb30" data-code-line-numbers="5,6,9,10,16,17"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Lesson (</span>
+<span id="cb30-2"><a href="#cb30-2"></a>  <span class="co">-- ... (non-foreign key columns etc)</span></span>
+<span id="cb30-3"><a href="#cb30-3"></a>  Course_OID <span class="dt">INTEGER</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span>
+<span id="cb30-4"><a href="#cb30-4"></a>      <span class="kw">REFERENCES</span> Course (Course_OID)</span>
+<span id="cb30-5"><a href="#cb30-5"></a>      <span class="co">-- deleting a course cascades to deleting all its lessons</span></span>
+<span id="cb30-6"><a href="#cb30-6"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb30-7"><a href="#cb30-7"></a>  Instructor_OID <span class="dt">INTEGER</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span>
+<span id="cb30-8"><a href="#cb30-8"></a>      <span class="kw">REFERENCES</span> Instructor (Instructor_OID)</span>
+<span id="cb30-9"><a href="#cb30-9"></a>      <span class="co">-- prevent deletion of instructor if they are assigned to lessons</span></span>
+<span id="cb30-10"><a href="#cb30-10"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">RESTRICT</span></span>
+<span id="cb30-11"><a href="#cb30-11"></a>);</span>
+<span id="cb30-12"><a href="#cb30-12"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> Course (</span>
+<span id="cb30-13"><a href="#cb30-13"></a>  <span class="co">-- ... (non-foreign key columns etc)</span></span>
+<span id="cb30-14"><a href="#cb30-14"></a>  Room_OID <span class="dt">INTEGER</span></span>
+<span id="cb30-15"><a href="#cb30-15"></a>      <span class="kw">REFERENCES</span> Room (Room_OID)</span>
+<span id="cb30-16"><a href="#cb30-16"></a>      <span class="co">-- if FK is optional, setting to NULL could be appropriate</span></span>
+<span id="cb30-17"><a href="#cb30-17"></a>      <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">SET</span> <span class="kw">NULL</span></span>
+<span id="cb30-18"><a href="#cb30-18"></a>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <!-- populate other tables -->
 
@@ -750,7 +817,7 @@ Hilmar Lapp
 <section id="simple-querying" class="slide level2 smaller">
 <h2>Simple querying</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb28-1"><a href="#cb28-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Instructor;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb31-1"><a href="#cb31-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Instructor;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>5 records</caption>
@@ -798,7 +865,7 @@ Hilmar Lapp
 <li>We can enumerate and thus limit columns to be reported:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">SELECT</span> Name, Address <span class="kw">FROM</span> Room;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">SELECT</span> Name, Address <span class="kw">FROM</span> Room;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>1 records</caption>
@@ -821,10 +888,10 @@ Hilmar Lapp
 <li>We can also rename columns, transform them, and apply functions:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">SELECT</span> Course_OID <span class="kw">AS</span> <span class="kw">ID</span>, </span>
-<span id="cb30-2"><a href="#cb30-2"></a>       Name <span class="op">||</span> <span class="st">' ('</span> <span class="op">||</span> Semester <span class="op">||</span> <span class="st">')'</span> <span class="kw">AS</span> Course_Name,</span>
-<span id="cb30-3"><a href="#cb30-3"></a>       IFNULL(Room_OID, <span class="op">-</span><span class="dv">1</span>) <span class="kw">AS</span> Room</span>
-<span id="cb30-4"><a href="#cb30-4"></a><span class="kw">FROM</span> Course;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">SELECT</span> Course_OID <span class="kw">AS</span> <span class="kw">ID</span>, </span>
+<span id="cb33-2"><a href="#cb33-2"></a>       Name <span class="op">||</span> <span class="st">' ('</span> <span class="op">||</span> Semester <span class="op">||</span> <span class="st">')'</span> <span class="kw">AS</span> Course_Name,</span>
+<span id="cb33-3"><a href="#cb33-3"></a>       IFNULL(Room_OID, <span class="op">-</span><span class="dv">1</span>) <span class="kw">AS</span> Room</span>
+<span id="cb33-4"><a href="#cb33-4"></a><span class="kw">FROM</span> Course;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>4 records</caption>
@@ -864,8 +931,8 @@ Hilmar Lapp
 <section id="filter-matching-rows-where" class="slide level2 smaller">
 <h2>Filter matching rows: WHERE</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb31-1"><a href="#cb31-1"></a><span class="kw">SELECT</span> Email <span class="kw">from</span> Instructor</span>
-<span id="cb31-2"><a href="#cb31-2"></a><span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'Hilmar Lapp'</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb34-1"><a href="#cb34-1"></a><span class="kw">SELECT</span> Email <span class="kw">from</span> Instructor</span>
+<span id="cb34-2"><a href="#cb34-2"></a><span class="kw">WHERE</span> Name <span class="op">=</span> <span class="st">'Hilmar Lapp'</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>1 records</caption>
@@ -886,8 +953,8 @@ Hilmar Lapp
 <li>We can use functions; wildcard matches use `LIKE’:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> Name <span class="kw">from</span> Lesson   <span class="co">-- DISTINCT makes rows unique</span></span>
-<span id="cb32-2"><a href="#cb32-2"></a><span class="kw">WHERE</span> <span class="fu">UPPER</span>(Name) <span class="kw">LIKE</span> <span class="st">'%DATA%'</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb35-1"><a href="#cb35-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> Name <span class="kw">from</span> Lesson   <span class="co">-- DISTINCT makes rows unique</span></span>
+<span id="cb35-2"><a href="#cb35-2"></a><span class="kw">WHERE</span> <span class="fu">UPPER</span>(Name) <span class="kw">LIKE</span> <span class="st">'%DATA%'</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>2 records</caption>
@@ -914,11 +981,11 @@ Hilmar Lapp
 <li>Conditions can include subqueries</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> Name <span class="kw">FROM</span> Lesson</span>
-<span id="cb33-2"><a href="#cb33-2"></a><span class="kw">WHERE</span> Instructor_OID <span class="kw">IN</span> (</span>
-<span id="cb33-3"><a href="#cb33-3"></a>   <span class="kw">SELECT</span> Instructor_OID</span>
-<span id="cb33-4"><a href="#cb33-4"></a>   <span class="kw">FROM</span> Instructor <span class="kw">WHERE</span> Name <span class="kw">LIKE</span> <span class="st">'h%'</span></span>
-<span id="cb33-5"><a href="#cb33-5"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb36-1"><a href="#cb36-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> Name <span class="kw">FROM</span> Lesson</span>
+<span id="cb36-2"><a href="#cb36-2"></a><span class="kw">WHERE</span> Instructor_OID <span class="kw">IN</span> (</span>
+<span id="cb36-3"><a href="#cb36-3"></a>   <span class="kw">SELECT</span> Instructor_OID</span>
+<span id="cb36-4"><a href="#cb36-4"></a>   <span class="kw">FROM</span> Instructor <span class="kw">WHERE</span> Name <span class="kw">LIKE</span> <span class="st">'h%'</span></span>
+<span id="cb36-5"><a href="#cb36-5"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>4 records</caption>
@@ -951,7 +1018,7 @@ Hilmar Lapp
 <li>The representation of NULL depends on environment; in R:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb34-1"><a href="#cb34-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Course;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb37-1"><a href="#cb37-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Course;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>4 records</caption>
@@ -999,8 +1066,8 @@ Hilmar Lapp
 <li>Note that NULL is not equal or unequal to anything, including itself:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb35-1"><a href="#cb35-1"></a><span class="kw">SELECT</span> Name, Semester <span class="kw">FROM</span> Course</span>
-<span id="cb35-2"><a href="#cb35-2"></a><span class="kw">WHERE</span> Room_OID <span class="op">=</span> <span class="kw">NULL</span> <span class="kw">OR</span> <span class="kw">NOT</span> Room_OID <span class="op">=</span> <span class="kw">NULL</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb38-1"><a href="#cb38-1"></a><span class="kw">SELECT</span> Name, Semester <span class="kw">FROM</span> Course</span>
+<span id="cb38-2"><a href="#cb38-2"></a><span class="kw">WHERE</span> Room_OID <span class="op">=</span> <span class="kw">NULL</span> <span class="kw">OR</span> <span class="kw">NOT</span> Room_OID <span class="op">=</span> <span class="kw">NULL</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>0 records</caption>
@@ -1019,7 +1086,7 @@ Hilmar Lapp
 <li>Instead we must use a special boolean operator:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb36-1"><a href="#cb36-1"></a><span class="kw">SELECT</span> Name, Semester <span class="kw">FROM</span> Course <span class="kw">WHERE</span> Room_OID <span class="kw">IS</span> <span class="kw">NULL</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb39-1"><a href="#cb39-1"></a><span class="kw">SELECT</span> Name, Semester <span class="kw">FROM</span> Course <span class="kw">WHERE</span> Room_OID <span class="kw">IS</span> <span class="kw">NULL</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>1 records</caption>
@@ -1045,9 +1112,9 @@ Hilmar Lapp
 <li>Table joins allow creating denormalized reports from a normalized database</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb37-1"><a href="#cb37-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, c.Semester, l.Name <span class="kw">AS</span> Lesson</span>
-<span id="cb37-2"><a href="#cb37-2"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">INNER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l <span class="kw">ON</span> (c.Course_OID <span class="op">=</span> l.Course_OID)</span>
-<span id="cb37-3"><a href="#cb37-3"></a><span class="kw">LIMIT</span> <span class="dv">5</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb40-1"><a href="#cb40-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, c.Semester, l.Name <span class="kw">AS</span> Lesson</span>
+<span id="cb40-2"><a href="#cb40-2"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">INNER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l <span class="kw">ON</span> (c.Course_OID <span class="op">=</span> l.Course_OID)</span>
+<span id="cb40-3"><a href="#cb40-3"></a><span class="kw">LIMIT</span> <span class="dv">5</span>;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>5 records</caption>
@@ -1091,9 +1158,9 @@ Hilmar Lapp
 <ul>
 <li>If column names for joining are the same, we can shorten with <code>USING</code>:</li>
 </ul>
-<div class="sourceCode" id="cb38" data-code-line-numbers="3"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb38-1"><a href="#cb38-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, c.Semester, l.Name <span class="kw">AS</span> Lesson</span>
-<span id="cb38-2"><a href="#cb38-2"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">INNER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l</span>
-<span id="cb38-3"><a href="#cb38-3"></a>     <span class="kw">USING</span> (Course_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb41" data-code-line-numbers="3"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb41-1"><a href="#cb41-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, c.Semester, l.Name <span class="kw">AS</span> Lesson</span>
+<span id="cb41-2"><a href="#cb41-2"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">INNER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l</span>
+<span id="cb41-3"><a href="#cb41-3"></a>     <span class="kw">USING</span> (Course_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="joining-multiple-tables" class="slide level2 smaller scrollable">
 <h2>Joining multiple tables</h2>
@@ -1101,11 +1168,11 @@ Hilmar Lapp
 <li>Table joins can span more than 2 tables:</li>
 </ul>
 <div class="cell" data-max.print="null">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb39-1"><a href="#cb39-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, <span class="fu">substr</span>(c.Semester,<span class="op">-</span><span class="dv">4</span>) <span class="kw">AS</span> <span class="dt">Year</span>,</span>
-<span id="cb39-2"><a href="#cb39-2"></a>       r.Name <span class="kw">AS</span> Room, l.Name <span class="kw">AS</span> Lesson, i.Name <span class="kw">AS</span> Instructor</span>
-<span id="cb39-3"><a href="#cb39-3"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">INNER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb39-4"><a href="#cb39-4"></a>     <span class="kw">INNER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
-<span id="cb39-5"><a href="#cb39-5"></a>     <span class="kw">INNER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb42-1"><a href="#cb42-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, <span class="fu">substr</span>(c.Semester,<span class="op">-</span><span class="dv">4</span>) <span class="kw">AS</span> <span class="dt">Year</span>,</span>
+<span id="cb42-2"><a href="#cb42-2"></a>       r.Name <span class="kw">AS</span> Room, l.Name <span class="kw">AS</span> Lesson, i.Name <span class="kw">AS</span> Instructor</span>
+<span id="cb42-3"><a href="#cb42-3"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">INNER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb42-4"><a href="#cb42-4"></a>     <span class="kw">INNER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
+<span id="cb42-5"><a href="#cb42-5"></a>     <span class="kw">INNER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>15 records</caption>
@@ -1242,8 +1309,8 @@ Hilmar Lapp
 <li>Use a left or right outer join to include rows from the left or right side of a join that don’t match the join condition:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb40-1"><a href="#cb40-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, c.Semester, r.Name <span class="kw">AS</span> Room</span>
-<span id="cb40-2"><a href="#cb40-2"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb43-1"><a href="#cb43-1"></a><span class="kw">SELECT</span> c.Name <span class="kw">AS</span> Course, c.Semester, r.Name <span class="kw">AS</span> Room</span>
+<span id="cb43-2"><a href="#cb43-2"></a><span class="kw">FROM</span> Course <span class="kw">AS</span> c <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>4 records</caption>
@@ -1289,10 +1356,10 @@ Hilmar Lapp
 </ul></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb41-1"><a href="#cb41-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester, r.Name <span class="kw">AS</span> Room</span>
-<span id="cb41-2"><a href="#cb41-2"></a><span class="kw">FROM</span> Instructor <span class="kw">AS</span> i <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l <span class="kw">USING</span> (Instructor_OID)</span>
-<span id="cb41-3"><a href="#cb41-3"></a>     <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb41-4"><a href="#cb41-4"></a>     <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb44-1"><a href="#cb44-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester, r.Name <span class="kw">AS</span> Room</span>
+<span id="cb44-2"><a href="#cb44-2"></a><span class="kw">FROM</span> Instructor <span class="kw">AS</span> i <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Lesson <span class="kw">AS</span> l <span class="kw">USING</span> (Instructor_OID)</span>
+<span id="cb44-3"><a href="#cb44-3"></a>     <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb44-4"><a href="#cb44-4"></a>     <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>7 records</caption>
@@ -1358,10 +1425,10 @@ Hilmar Lapp
 <li>Join order does not matter for inner joins, but does matter for whether a join must be outer and left or right.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb42-1"><a href="#cb42-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester, r.Name <span class="kw">AS</span> Room</span>
-<span id="cb42-2"><a href="#cb42-2"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb42-3"><a href="#cb42-3"></a>     <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID)</span>
-<span id="cb42-4"><a href="#cb42-4"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb45-1"><a href="#cb45-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester, r.Name <span class="kw">AS</span> Room</span>
+<span id="cb45-2"><a href="#cb45-2"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb45-3"><a href="#cb45-3"></a>     <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID)</span>
+<span id="cb45-4"><a href="#cb45-4"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>7 records</caption>
@@ -1443,13 +1510,13 @@ Hilmar Lapp
 <li><p>For example, which instructors are teaching in a given semester:</p></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb43-1"><a href="#cb43-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, i.Email</span>
-<span id="cb43-2"><a href="#cb43-2"></a><span class="kw">FROM</span> Instructor <span class="kw">AS</span> i</span>
-<span id="cb43-3"><a href="#cb43-3"></a><span class="kw">WHERE</span> <span class="kw">EXISTS</span> (</span>
-<span id="cb43-4"><a href="#cb43-4"></a>    <span class="kw">SELECT</span> <span class="dv">1</span> <span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb43-5"><a href="#cb43-5"></a>    <span class="kw">WHERE</span> c.Semester <span class="op">=</span> <span class="st">'Fall 2023'</span></span>
-<span id="cb43-6"><a href="#cb43-6"></a>    <span class="kw">AND</span>   l.Instructor_OID <span class="op">=</span> i.Instructor_OID</span>
-<span id="cb43-7"><a href="#cb43-7"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb46-1"><a href="#cb46-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, i.Email</span>
+<span id="cb46-2"><a href="#cb46-2"></a><span class="kw">FROM</span> Instructor <span class="kw">AS</span> i</span>
+<span id="cb46-3"><a href="#cb46-3"></a><span class="kw">WHERE</span> <span class="kw">EXISTS</span> (</span>
+<span id="cb46-4"><a href="#cb46-4"></a>    <span class="kw">SELECT</span> <span class="dv">1</span> <span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb46-5"><a href="#cb46-5"></a>    <span class="kw">WHERE</span> c.Semester <span class="op">=</span> <span class="st">'Fall 2023'</span></span>
+<span id="cb46-6"><a href="#cb46-6"></a>    <span class="kw">AND</span>   l.Instructor_OID <span class="op">=</span> i.Instructor_OID</span>
+<span id="cb46-7"><a href="#cb46-7"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>3 records</caption>
@@ -1483,13 +1550,13 @@ Hilmar Lapp
 <li>For example, instructors who <em>don’t</em> teach in a given semester</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb44-1"><a href="#cb44-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, i.Email</span>
-<span id="cb44-2"><a href="#cb44-2"></a><span class="kw">FROM</span> Instructor <span class="kw">AS</span> i</span>
-<span id="cb44-3"><a href="#cb44-3"></a><span class="kw">WHERE</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> (</span>
-<span id="cb44-4"><a href="#cb44-4"></a>    <span class="kw">SELECT</span> <span class="dv">1</span> <span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb44-5"><a href="#cb44-5"></a>    <span class="kw">WHERE</span> c.Semester <span class="op">=</span> <span class="st">'Fall 2024'</span></span>
-<span id="cb44-6"><a href="#cb44-6"></a>    <span class="kw">AND</span>   l.Instructor_OID <span class="op">=</span> i.Instructor_OID</span>
-<span id="cb44-7"><a href="#cb44-7"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb47-1"><a href="#cb47-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, i.Email</span>
+<span id="cb47-2"><a href="#cb47-2"></a><span class="kw">FROM</span> Instructor <span class="kw">AS</span> i</span>
+<span id="cb47-3"><a href="#cb47-3"></a><span class="kw">WHERE</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> (</span>
+<span id="cb47-4"><a href="#cb47-4"></a>    <span class="kw">SELECT</span> <span class="dv">1</span> <span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb47-5"><a href="#cb47-5"></a>    <span class="kw">WHERE</span> c.Semester <span class="op">=</span> <span class="st">'Fall 2024'</span></span>
+<span id="cb47-6"><a href="#cb47-6"></a>    <span class="kw">AND</span>   l.Instructor_OID <span class="op">=</span> i.Instructor_OID</span>
+<span id="cb47-7"><a href="#cb47-7"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>4 records</caption>
@@ -1530,12 +1597,12 @@ Hilmar Lapp
 </ul></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb45-1"><a href="#cb45-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester,</span>
-<span id="cb45-2"><a href="#cb45-2"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'#Lessons'</span>,</span>
-<span id="cb45-3"><a href="#cb45-3"></a>       <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> <span class="st">'#RowsInGroup'</span></span>
-<span id="cb45-4"><a href="#cb45-4"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb45-5"><a href="#cb45-5"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
-<span id="cb45-6"><a href="#cb45-6"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name, c.Semester;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb48-1"><a href="#cb48-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester,</span>
+<span id="cb48-2"><a href="#cb48-2"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'#Lessons'</span>,</span>
+<span id="cb48-3"><a href="#cb48-3"></a>       <span class="fu">COUNT</span>(<span class="op">*</span>) <span class="kw">AS</span> <span class="st">'#RowsInGroup'</span></span>
+<span id="cb48-4"><a href="#cb48-4"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb48-5"><a href="#cb48-5"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
+<span id="cb48-6"><a href="#cb48-6"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name, c.Semester;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>7 records</caption>
@@ -1612,12 +1679,12 @@ Hilmar Lapp
 </ul></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb46-1"><a href="#cb46-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course,</span>
-<span id="cb46-2"><a href="#cb46-2"></a>       <span class="fu">MAX</span>(c.Semester) <span class="kw">AS</span> LastSemester, <span class="co">-- choose one non-NULL value from group</span></span>
-<span id="cb46-3"><a href="#cb46-3"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'#Lessons'</span></span>
-<span id="cb46-4"><a href="#cb46-4"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb46-5"><a href="#cb46-5"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
-<span id="cb46-6"><a href="#cb46-6"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb49-1"><a href="#cb49-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course,</span>
+<span id="cb49-2"><a href="#cb49-2"></a>       <span class="fu">MAX</span>(c.Semester) <span class="kw">AS</span> LastSemester, <span class="co">-- choose one non-NULL value from group</span></span>
+<span id="cb49-3"><a href="#cb49-3"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'#Lessons'</span></span>
+<span id="cb49-4"><a href="#cb49-4"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb49-5"><a href="#cb49-5"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
+<span id="cb49-6"><a href="#cb49-6"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>5 records</caption>
@@ -1671,12 +1738,12 @@ Hilmar Lapp
 <li>We can restrict which aggregate groups match based on conditions using aggregate function(s):</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb47-1"><a href="#cb47-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester,</span>
-<span id="cb47-2"><a href="#cb47-2"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'#Lessons'</span></span>
-<span id="cb47-3"><a href="#cb47-3"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb47-4"><a href="#cb47-4"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
-<span id="cb47-5"><a href="#cb47-5"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name, c.Semester</span>
-<span id="cb47-6"><a href="#cb47-6"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(l.Name) <span class="op">&gt;</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb50-1"><a href="#cb50-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester,</span>
+<span id="cb50-2"><a href="#cb50-2"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'#Lessons'</span></span>
+<span id="cb50-3"><a href="#cb50-3"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb50-4"><a href="#cb50-4"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
+<span id="cb50-5"><a href="#cb50-5"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name, c.Semester</span>
+<span id="cb50-6"><a href="#cb50-6"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(l.Name) <span class="op">&gt;</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>6 records</caption>
@@ -1736,12 +1803,12 @@ Hilmar Lapp
 <li><code>SELECT</code> and <code>HAVING</code> clauses can use different aggregate functions:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb48-1"><a href="#cb48-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester,</span>
-<span id="cb48-2"><a href="#cb48-2"></a>       GROUP_CONCAT(l.Name,<span class="st">', '</span>) <span class="kw">AS</span> Lessons</span>
-<span id="cb48-3"><a href="#cb48-3"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb48-4"><a href="#cb48-4"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
-<span id="cb48-5"><a href="#cb48-5"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name, c.Semester</span>
-<span id="cb48-6"><a href="#cb48-6"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(l.Name) <span class="op">&gt;</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb51-1"><a href="#cb51-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester,</span>
+<span id="cb51-2"><a href="#cb51-2"></a>       GROUP_CONCAT(l.Name,<span class="st">', '</span>) <span class="kw">AS</span> Lessons</span>
+<span id="cb51-3"><a href="#cb51-3"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb51-4"><a href="#cb51-4"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
+<span id="cb51-5"><a href="#cb51-5"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name, c.Semester</span>
+<span id="cb51-6"><a href="#cb51-6"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(l.Name) <span class="op">&gt;</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>6 records</caption>
@@ -1807,13 +1874,13 @@ Hilmar Lapp
 <li>Queries can use both row conditions and aggregate group conditions</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb49-1"><a href="#cb49-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester,</span>
-<span id="cb49-2"><a href="#cb49-2"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'#Lessons'</span></span>
-<span id="cb49-3"><a href="#cb49-3"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb49-4"><a href="#cb49-4"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
-<span id="cb49-5"><a href="#cb49-5"></a><span class="kw">WHERE</span> c.Semester <span class="op">=</span> <span class="st">'Fall 2022'</span></span>
-<span id="cb49-6"><a href="#cb49-6"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name, c.Semester</span>
-<span id="cb49-7"><a href="#cb49-7"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(l.Name) <span class="op">&gt;</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb52-1"><a href="#cb52-1"></a><span class="kw">SELECT</span> i.Name <span class="kw">AS</span> Instructor, c.Name <span class="kw">AS</span> Course, c.Semester,</span>
+<span id="cb52-2"><a href="#cb52-2"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'#Lessons'</span></span>
+<span id="cb52-3"><a href="#cb52-3"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb52-4"><a href="#cb52-4"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
+<span id="cb52-5"><a href="#cb52-5"></a><span class="kw">WHERE</span> c.Semester <span class="op">=</span> <span class="st">'Fall 2022'</span></span>
+<span id="cb52-6"><a href="#cb52-6"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Name, c.Name, c.Semester</span>
+<span id="cb52-7"><a href="#cb52-7"></a><span class="kw">HAVING</span> <span class="fu">COUNT</span>(l.Name) <span class="op">&gt;</span> <span class="dv">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>1 records</caption>
@@ -1861,16 +1928,16 @@ Hilmar Lapp
 <li>We create views simply based on a query, which can be simple or complex</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb50-1"><a href="#cb50-1"></a><span class="kw">CREATE</span> <span class="kw">VIEW</span> Instructor_Courses <span class="kw">AS</span></span>
-<span id="cb50-2"><a href="#cb50-2"></a><span class="kw">SELECT</span> i.Instructor_OID,</span>
-<span id="cb50-3"><a href="#cb50-3"></a>       <span class="fu">MAX</span>(i.Name) <span class="kw">AS</span> Instructor,</span>
-<span id="cb50-4"><a href="#cb50-4"></a>       <span class="fu">MAX</span>(c.Name) <span class="kw">AS</span> Course, <span class="fu">MAX</span>(c.Semester) <span class="kw">AS</span> Semester,</span>
-<span id="cb50-5"><a href="#cb50-5"></a>       GROUP_CONCAT(l.Name, <span class="st">', '</span>) <span class="kw">AS</span> Lessons,</span>
-<span id="cb50-6"><a href="#cb50-6"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'NumLessons'</span>,</span>
-<span id="cb50-7"><a href="#cb50-7"></a>       <span class="fu">MAX</span>(c.Room_OID) <span class="kw">AS</span> Room_OID</span>
-<span id="cb50-8"><a href="#cb50-8"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
-<span id="cb50-9"><a href="#cb50-9"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
-<span id="cb50-10"><a href="#cb50-10"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Instructor_OID, c.Course_OID;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb53-1"><a href="#cb53-1"></a><span class="kw">CREATE</span> <span class="kw">VIEW</span> Instructor_Courses <span class="kw">AS</span></span>
+<span id="cb53-2"><a href="#cb53-2"></a><span class="kw">SELECT</span> i.Instructor_OID,</span>
+<span id="cb53-3"><a href="#cb53-3"></a>       <span class="fu">MAX</span>(i.Name) <span class="kw">AS</span> Instructor,</span>
+<span id="cb53-4"><a href="#cb53-4"></a>       <span class="fu">MAX</span>(c.Name) <span class="kw">AS</span> Course, <span class="fu">MAX</span>(c.Semester) <span class="kw">AS</span> Semester,</span>
+<span id="cb53-5"><a href="#cb53-5"></a>       GROUP_CONCAT(l.Name, <span class="st">', '</span>) <span class="kw">AS</span> Lessons,</span>
+<span id="cb53-6"><a href="#cb53-6"></a>       <span class="fu">COUNT</span>(l.Name) <span class="kw">AS</span> <span class="st">'NumLessons'</span>,</span>
+<span id="cb53-7"><a href="#cb53-7"></a>       <span class="fu">MAX</span>(c.Room_OID) <span class="kw">AS</span> Room_OID</span>
+<span id="cb53-8"><a href="#cb53-8"></a><span class="kw">FROM</span> Lesson <span class="kw">AS</span> l <span class="kw">INNER</span> <span class="kw">JOIN</span> Course <span class="kw">AS</span> c <span class="kw">USING</span> (Course_OID)</span>
+<span id="cb53-9"><a href="#cb53-9"></a>     <span class="kw">RIGHT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Instructor <span class="kw">AS</span> i <span class="kw">USING</span> (Instructor_OID)</span>
+<span id="cb53-10"><a href="#cb53-10"></a><span class="kw">GROUP</span> <span class="kw">BY</span> i.Instructor_OID, c.Course_OID;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>By default, the column names of a view are determined by those of the query</li>
@@ -1879,7 +1946,7 @@ Hilmar Lapp
 <section id="querying-views" class="slide level2 smaller scrollable">
 <h2>Querying views</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb51-1"><a href="#cb51-1"></a><span class="kw">SELECT</span> Instructor, Course, Semester, Lessons, NumLessons <span class="kw">FROM</span> Instructor_Courses;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb54-1"><a href="#cb54-1"></a><span class="kw">SELECT</span> Instructor, Course, Semester, Lessons, NumLessons <span class="kw">FROM</span> Instructor_Courses;</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>7 records</caption>
@@ -1960,10 +2027,10 @@ Hilmar Lapp
 <li>For example, report the average number of lessons per course semester</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb52-1"><a href="#cb52-1"></a><span class="kw">SELECT</span> Course, Semester, <span class="fu">ROUND</span>(<span class="fu">AVG</span>(NumLessons), <span class="dv">2</span>) <span class="kw">AS</span> <span class="st">'mean(#Lessons)'</span></span>
-<span id="cb52-2"><a href="#cb52-2"></a><span class="kw">FROM</span> Instructor_Courses</span>
-<span id="cb52-3"><a href="#cb52-3"></a><span class="kw">WHERE</span> NumLessons <span class="op">&gt;</span> <span class="dv">0</span></span>
-<span id="cb52-4"><a href="#cb52-4"></a><span class="kw">GROUP</span> <span class="kw">BY</span> Course, Semester</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb55-1"><a href="#cb55-1"></a><span class="kw">SELECT</span> Course, Semester, <span class="fu">ROUND</span>(<span class="fu">AVG</span>(NumLessons), <span class="dv">2</span>) <span class="kw">AS</span> <span class="st">'mean(#Lessons)'</span></span>
+<span id="cb55-2"><a href="#cb55-2"></a><span class="kw">FROM</span> Instructor_Courses</span>
+<span id="cb55-3"><a href="#cb55-3"></a><span class="kw">WHERE</span> NumLessons <span class="op">&gt;</span> <span class="dv">0</span></span>
+<span id="cb55-4"><a href="#cb55-4"></a><span class="kw">GROUP</span> <span class="kw">BY</span> Course, Semester</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>4 records</caption>
@@ -2006,10 +2073,10 @@ Hilmar Lapp
 <li>As APIs, it is useful to include surrogate primary keys of participating objects in a view, which allows joining them for auxiliary facts</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb53-1"><a href="#cb53-1"></a><span class="kw">SELECT</span> Instructor, Course, Semester, r.Name <span class="kw">AS</span> Room</span>
-<span id="cb53-2"><a href="#cb53-2"></a><span class="kw">FROM</span> Instructor_Courses </span>
-<span id="cb53-3"><a href="#cb53-3"></a>     <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID)</span>
-<span id="cb53-4"><a href="#cb53-4"></a><span class="kw">WHERE</span> Course <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode numberSource sql number-lines code-with-copy"><code class="sourceCode sql"><span id="cb56-1"><a href="#cb56-1"></a><span class="kw">SELECT</span> Instructor, Course, Semester, r.Name <span class="kw">AS</span> Room</span>
+<span id="cb56-2"><a href="#cb56-2"></a><span class="kw">FROM</span> Instructor_Courses </span>
+<span id="cb56-3"><a href="#cb56-3"></a>     <span class="kw">LEFT</span> <span class="kw">OUTER</span> <span class="kw">JOIN</span> Room <span class="kw">AS</span> r <span class="kw">USING</span> (Room_OID)</span>
+<span id="cb56-4"><a href="#cb56-4"></a><span class="kw">WHERE</span> Course <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="knitsql-table">
 <table>
 <caption>6 records</caption>
