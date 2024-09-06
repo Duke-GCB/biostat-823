@@ -453,6 +453,7 @@ WHERE Name = 'Hilmar Lapp';
 SELECT DISTINCT Name from Lesson   -- DISTINCT makes rows unique
 WHERE UPPER(Name) LIKE '%DATA%';
 ```
+  Note that unlike shell glob patterns, regular expressions etc, SQL uses `%` for any number of characters (including zero), and `_` for one character as wildcards.
 
 ---
 
