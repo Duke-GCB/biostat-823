@@ -704,7 +704,7 @@ WHERE Course IS NOT NULL
   - note that ordering can have a performance cost
 * In most (OO) programming language environments, SQL database interaction is handled under the hood by ORM (Object-Relational Mapping) libraries
   - e.g., [sqlalchemy](https://www.sqlalchemy.org) in Python
-* Some popular datascience packages for R and Python have SQL database interfaces
+* Some popular datas cience packages for R and Python have SQL database interfaces
   - e.g., [dbplyr](https://dbplyr.tidyverse.org) in R; in Python, `pandas` [can read/write from/to a SQL database](https://pandas.pydata.org/docs/user_guide/io.html#io-sql)
 * [SQLite Documentation](https://www.sqlite.org/docs.html)
 * Joe Celko, _Joe Celko's SQL for Smarties: Advanced SQL Programming_. Morgan & Kaufmann, 2015
