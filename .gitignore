@@ -127,6 +127,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# R, RStudio etc
 .Rproj.user
+*.Rproj
 
 /.quarto/
+
+# data files
+
+*.tgz
+*.tar.gz
+*.backup
