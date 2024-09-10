@@ -2,7 +2,7 @@
 title: "Biostat 823 - Data Warehousing"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Nov 9, 2023"
+date: "Sep 12, 2024"
 format:
   revealjs:
     slide-number: true
