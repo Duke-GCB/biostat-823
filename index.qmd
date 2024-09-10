@@ -21,7 +21,7 @@ editor: visual
 ### [Containerization](Lesson-02.html)
 ### [Relational Data Modeling](Lesson-RelMod.html)
 ### [Structured Query Language (SQL)](Lesson-SQL.html)
-### [Data Warehousing](Lesson-05.html)
+### [Data Warehousing](Lesson-Warehouse.html)
 ### [Recursive Data Structures in SQL](Lesson-06.html)
 ### [Web Ontology Language](Lesson-7b.html)
 ### Graph data, Triple Stores, SPARQL {.hidden} 
