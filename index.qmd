@@ -22,7 +22,7 @@ editor: visual
 ### [Relational Data Modeling](Lesson-RelMod.html)
 ### [Structured Query Language (SQL)](Lesson-SQL.html)
 ### [Data Warehousing](Lesson-Warehouse.html)
-### [Recursive Data Structures in SQL](Lesson-06.html)
+### [Recursive Data Structures in SQL](Lesson-RecurSQL.html)
 ### [Web Ontology Language](Lesson-7b.html)
 ### Graph data, Triple Stores, SPARQL {.hidden} 
 ### [Semantic Similarity](Lesson-09.html)
