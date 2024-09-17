@@ -4,7 +4,7 @@ CREATE TABLE Node1 (
   Parent_ID INTEGER
     REFERENCES Node1(ID),
   "Left" INTEGER,
-  "RIGHT" INTEGER
+  "Right" INTEGER
 );
 
 INSERT INTO Node1 (ID, Name, Parent_ID, "Left", "Right")
