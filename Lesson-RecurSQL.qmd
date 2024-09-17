@@ -205,28 +205,48 @@ nestedSet(rootNode, 1)
 
 ## Recursive CTE example: factorial() {.smaller .scrollable}
 
-```{r, setupSQLite, include=FALSE}
+```{r setupSQLite, include=FALSE}
 library(RSQLite)
 library(DBI)
-db <- dbConnect(RSQLite::SQLite(), "data/ncbi20170203.db")
+db <- dbConnect(RSQLite::SQLite(), ":memory:")
 
 knitr::opts_chunk$set(connection = "db")
 ```
 
 
-```{sql, label="recursive1"}
-WITH RECURSIVE temp (n, factorial) AS (
+```{sql, label="recursiveFactorial"}
+WITH RECURSIVE factorials (n, factorial) AS (
        SELECT 0, 1 -- Initial Subquery
        UNION ALL
        -- Recursive Subquery
        SELECT n+1, (n+1)*factorial
-       FROM   temp
-       WHERE  n < 9
+       FROM   factorials
+       WHERE  n < 10
 )
-SELECT * FROM temp;
+SELECT * FROM factorials;
+```
+
+## Recursive CTE example: fibonacci() {.smaller .scrollable}
+
+
+```{sql, label=recursiveFib}
+WITH RECURSIVE fibonacci (n, fib_n, fib_n1) AS (
+       SELECT 1, 1, 0 -- Initial Subquery
+       UNION ALL
+       -- Recursive Subquery
+       SELECT n+1, fib_n+fib_n1, fib_n
+       FROM   fibonacci
+       WHERE  n < 10
+)
+SELECT n, fib_n as "fib(n)", fib_n1 as "fib(n-1)" FROM fibonacci;
 ```
 
 ## Transitive closure using CTE (I) {.smaller .scrollable} 
+
+```{r, label="changeConn", include=FALSE}
+db <- dbConnect(RSQLite::SQLite(), "data/ncbi20170203.db")
+knitr::opts_chunk$set(connection = "db")
+```
 
 ```{sql, label="recursive2", max.print=NA}
 WITH RECURSIVE Node_Path (Node_ID, Ancestor_ID, Path_Len) AS (
