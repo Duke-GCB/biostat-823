@@ -4,11 +4,29 @@
 
 ### Tree (species taxonomy tree)
 
--   The [lesson slides](../Lesson-RecurSQL.qmd) use the [NCBI Taxonomy Database](https://www.ncbi.nlm.nih.gov/taxonomy) *"from a database dump downloaded from the NCBI FTP server on 2017-02-3, imported in a SQLite database table as a phylogenetic tree"* by R. Vos:
+-   The [lesson slides](../Lesson-RecurSQL.qmd) use the [NCBI Taxonomy Database](https://www.ncbi.nlm.nih.gov/taxonomy) *"from a database dump downloaded from the NCBI FTP server on 2017-02-03, imported in a SQLite database table as a phylogenetic tree"* by R. Vos:
 
     > Vos, Rutger (2017): NCBI taxonomy database files. figshare. Dataset. <https://doi.org/10.6084/m9.figshare.4620733.v1>
 
-    Download the file (ncbi-2017-02-03.db), then open in SQLite and apply the SQL (DDL) statements in [`ncbi-transform.sql`](ncbi-transform.sql).
+    Download the file (ncbi-2017-02-03.db), then open in SQLite and apply the SQL (DDL) statements in [`ncbi-transform.sql`](ncbi-transform.sql). You can do this using copy&paste, but you can also run the whole file at once if you downloaded it, using the `.read` SQLite shell command:
+
+    ```
+    sqlite> .read path/to/ncbi-transform.sql
+    ```
+
+-   You can also create a suitable database from a recent download from NCBI. Execute the steps in the [`ncb-taxonomy.ipynb`](ncbi-taxonomy.ipynb) Jupyter Notebook.
+    * _Note that running the SQL part of the notebook requires you to have the [SQL extension to Jupyter](https://jupysql.ploomber.io/) installed. (The notebook does not use Duckdb, so you can omit that from the instructions.) You can, of course, copy\&paste the SQL commands and execute them on the SQLite shell instead._
+    * The resulting `Node` table does not yet have the left and right columns. To add these, use the following SQL commands (either in a Jupyter Notebook in a `%%sql` cell, or on the SQLite command line):
+      ```sql
+      ALTER TABLE Node ADD COLUMN "Left" INTEGER;
+      ALTER TABLE Node ADD COLUMN "Right" INTEGER;
+      ```
+      Before using these columns in queries (such as after populating them), index them:
+      ```sql
+      CREATE INDEX Node_Left_Idx ON Node(Left);
+      CREATE INDEX Node_Right_Idx ON Node(Right);
+      ```
+      
 
 ### Graph (Ontology relation graph)
 
