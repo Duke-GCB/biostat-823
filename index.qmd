@@ -23,6 +23,6 @@ editor: visual
 ### [Structured Query Language (SQL)](Lesson-SQL.html)
 ### [Data Warehousing](Lesson-Warehouse.html)
 ### [Recursive Data Structures in SQL](Lesson-RecurSQL.html)
-### [Web Ontology Language](Lesson-7b.html)
+### [Web Ontology Language](Lesson-OWL.html)
 ### Graph data, Triple Stores, SPARQL {.hidden} 
 ### [Semantic Similarity](Lesson-09.html)

@@ -2,7 +2,7 @@
 title: "Biostat 823 - Web Ontology Language"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Nov 16, 2023"
+date: "Sep 24, 2024"
 format:
   revealjs:
     slide-number: true
@@ -20,7 +20,7 @@ knitr:
 * Web-Ontology Language:
   - [OWL](https://www.w3.org/TR/owl-ref/): W3C recommended standard in 2004
   - [OWL2](https://www.w3.org/TR/owl2-overview/): W3C recommended standard in 2009
-* Web-native: all identifiers are IRIs^[Internationalized Resource Identifier (IRI) is a Uniform Resource Identifier (URI) that allows international characters. URLs are URIs that locate resources.]
+* Web-native: all identifiers are IRIs^[[Internationalized Resource Identifier](https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier) (IRI) is a [Uniform Resource Identifier](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier) (URI) that allows international characters. URLs are URIs that locate resources.]
 
 ## OWL2: Rich ecosystem
 
@@ -124,7 +124,7 @@ _C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ a
   
 * Note that existential quantification is "asymmetric", and the reverse with the inverse property does not necessarily follow:
 
-  $hand\not\sqsubseteq\exists has\_part.index\_finger$
+  $index\_finger\sqsubseteq\exists part\_of.hand \wedge has\_part\equiv part\_of^- \not\rightarrow\\ hand\sqsubseteq\exists has\_part.index\_finger$
 
 ## Satisfiability and consistency {.smaller}
 
@@ -159,14 +159,14 @@ _C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ a
 * An ontology semantically entails a statement $\phi$ if $\phi$ is true in _all_ models (valid interpretations) of the ontology.
 * Reasoners compute semantic entailments.
 * A reasoner is
-  - _sound_ if every semantic entailment it computes is correct; and
+  - _sound_ if every semantic entailment it computes is correct;
   - _complete_ if it computes all possible semantic entailments.
-* To be useful, reasoners need to be both sound and complete.
+* To be useful, reasoners need to be both sound _and_ complete.
 
-## Reasoning services
+## Reasoning services {.smaller}
 
 - Semantic entailment
-- Satisfiability, consistency
+- Satisfiability and consistency
 - Classification
   * Inference of class subsumption hierarchy
   * Inference of individuals' class membership
@@ -174,6 +174,7 @@ _C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ a
   ```
   'anatomical structure' and 'part of' some 'hand'
   ```
+  The [DL Query tutorial](https://oboacademy.github.io/obook/tutorial/basic-dl-query/) in the OBOOK (OBO Organized Knowledge) collection of training and tutorial materials on ontology development and use provides a good introduction.
 - Explanation
 
 ## OWL2 profiles and decidability {.smaller}
@@ -182,11 +183,11 @@ _C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ a
   - Maximum expressivity while maintaining computational completeness and decidability
   - Allows well-performing reasoners
   - Some restrictions that in practice are rarely relevant (individuals and classes must be distinct; some cardinality restriction constraints for transitive properties)
-* OWL2 defines several expressivity profiles: OWL2-EL, OWL2-QL, and OWL2-RL
+* OWL2 defines several expressivity profiles: [OWL2-EL](https://www.w3.org/TR/owl2-profiles/#OWL_2_EL), [OWL2-QL](https://www.w3.org/TR/owl2-profiles/#OWL_2_QL), and [OWL2-RL](https://www.w3.org/TR/owl2-profiles/#OWL_2_RL)
 * OWL2-EL Profile:
   - Decidable in polynomial time, allows for very effective reasoners
   - Unsupported constructs include universal quantification; cardinality restrictions; disjunction; class negation; inverse, functional, (a)symmetric object properties.
-  - Supported constructs are sufficient for most bio-ontologies, including those that are very large (GO, UBERON, SNOMED-CT)
+  - Supported constructs are sufficient for most bio-ontologies, including those that are very large (Gene Ontology (GO), UBERON, SNOMED-CT)
 
 ## Resources: Reasoners
 
@@ -225,13 +226,15 @@ _C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ a
 
 ## Resources: OWL Ontologies {.smaller}
 
-- [OWL2 Primer](https://www.w3.org/TR/owl2-primer/)
+- Primers, Tutorials
+  * [OWL2 Primer](https://www.w3.org/TR/owl2-primer/)
+  * [Ontology 101](https://ontology101tutorial.readthedocs.io/) Tutorial
 - Software
-  * [Protégé ontology editor](https://protege.stanford.edu)
-  * [Ontology Development Kit](https://github.com/INCATools/ontology-development-kit)
-  * [Ontology Access Kit](https://github.com/INCATools/ontology-access-kit)
-  * [ROBOT](http://robot.obolibrary.org)
-  * [OWLAPI](https://github.com/owlcs/owlapi)
+  * [Protégé](https://protege.stanford.edu) -- authoring/editing ontologies
+  * [Ontology Development Kit](https://github.com/INCATools/ontology-development-kit) (ODK) -- initiate an ontology following OBO Library practices
+  * [Ontology Access Kit](https://github.com/INCATools/ontology-access-kit) (OAK) -- Python library and CLI
+  * [ROBOT](http://robot.obolibrary.org) -- command line tool
+  * [OWLAPI](https://github.com/owlcs/owlapi) -- library (Java) and reference implementation 
   
 ## Resources: Ontologies in Bio {.smaller}
 
@@ -250,3 +253,4 @@ _C_ and _D_ are concepts; _P_, _R_ and _S_ are roles (properties); _a_ and _b_ a
 * Nicole Vasilevsky's [curated list of ontology resources](https://nicolevasilevsky.github.io/ontology_resources/)
 * Michael DeBellis (2021) [A Practical Guide To Building OWL Ontologies Using Protégé 5.5 and Plugins](https://drive.google.com/file/d/1UqI19JiGnJwzKx_JQ7qRAz7bmCzyqZpj/view). Edition 1.4.
   - [Pizza Ontology](https://github.com/owlcs/pizza-ontology/blob/master/pizza.owl)
+* [OBO Organized Knowledge](https://oboacademy.github.io/obook/) (OBOOK) collection of training and tutorial materials on developing and using ontologies in life science.
