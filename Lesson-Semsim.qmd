@@ -2,7 +2,7 @@
 title: "Biostat 823 - Semantic Similarity"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Nov 28, 2023"
+date: "Oct 3, 2024"
 format:
   revealjs:
     slide-number: true
@@ -43,7 +43,7 @@ knitr:
 
 ## Common and disjoint ancestors
 
-![_I_ and _D_ are sometimes referred to as "disjoint common subsumers", i.e., the common subsumers that do not subsume another common subsumer. ](images/Semsim/concept-dag-subAll.svg){fig-align="center"}
+![_I_ and _D_ are examples of what is sometimes referred to as "disjoint common subsumers", i.e., the common subsumers that do not subsume another common subsumer. ](images/Semsim/concept-dag-subAll.svg){fig-align="center"}
 
 ## Pairwise semantic similarity {.smaller}
 
