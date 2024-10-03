@@ -25,4 +25,4 @@ editor: visual
 ### [Recursive Data Structures in SQL](Lesson-RecurSQL.html)
 ### [Web Ontology Language](Lesson-OWL.html)
 ### Graph data, Triple Stores, SPARQL {.hidden} 
-### [Semantic Similarity](Lesson-09.html)
+### [Semantic Similarity](Lesson-Semsim.html)
