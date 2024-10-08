@@ -2,7 +2,7 @@
 title: "Biostat 823 - Semantic Similarity"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Oct 3, 2024"
+date: "Oct 8, 2024"
 format:
   revealjs:
     slide-number: true
