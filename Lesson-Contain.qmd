@@ -2,7 +2,7 @@
 title: "Biostat 823 - Containerization"
 author: "Hilmar Lapp"
 institute: "Duke University, Department of Biostatistics & Bioinformatics"
-date: "Sep 14, 2023"
+date: "Oct 10, 2024"
 format:
   revealjs:
     slide-number: true
@@ -23,7 +23,7 @@ Reproducibility of computational research faces four major challenges^[Boettiger
 
 ## "Dependency Hell"
 
-* Software dependencies have themselves dependencies recursively
+* Software dependencies have themselves dependencies, recursively
 * Dependencies can be be often difficult to install (require compilation, manual "tweaks" due local OS or other differences, etc)
 * Required version may conflict with that required by other software, or may not work with the local OS version, making it impossible to install.
   - The likelihood of conflicts is particularly high on shared computing environments. 
@@ -42,7 +42,7 @@ Reproducibility of computational research faces four major challenges^[Boettiger
   - This can happen anywhere in the dependency chain.
 * Dependencies can also become unmaintained or end-of-life
   - Can result in removal from package repositories.
-  - Python 2.x example
+  - Python 2.x example; CRAN package removal by policy
 
 ## Virtual Machine as solution?
 
@@ -65,10 +65,10 @@ Reproducibility of computational research faces four major challenges^[Boettiger
 - 2007 (v1) and 2013--16 (v2): Linux control groups ([cgroups](https://en.wikipedia.org/wiki/Cgroups))
 - 2008: [Linux Containers (LXC)](https://en.wikipedia.org/wiki/LXC)
 - 2013: [Docker](https://www.docker.com)
-- 2015: [Singularity](https://en.wikipedia.org/wiki/Singularity_(software))
+- 2015: [Singularity](https://en.wikipedia.org/wiki/Singularity_(software)) and ([since 2021](https://apptainer.org/news/community-announcement-20211130/)) [Apptainer](https://apptainer.org)
 
 ::: aside
-There are many [OS-level virtualization](https://en.wikipedia.org/wiki/OS-level_virtualization) systems. LXC, Docker, and Singularity are by far the most important ones.
+There are many [OS-level virtualization](https://en.wikipedia.org/wiki/OS-level_virtualization) systems. LXC, and especially *Docker*, and *Apptainer/Singularity* are by far the most important ones.
 :::
 
 ## Properties of containerized processes {.smaller}
@@ -83,8 +83,8 @@ There are many [OS-level virtualization](https://en.wikipedia.org/wiki/OS-level_
 ![](images/docker-for-mac.png){fig-align="right" width="30%" style="float: right"}
 <br/><br/>
 * On Windows and macOS, requires a Linux VM 
-  - Part of the Docker installation (uses WSL on Windows; LinuxKit / Hypervisor Framework on macOS)
-  - Unsupported by Singularity
+  - Part of the Docker installation (uses [WSL/WSL2](https://learn.microsoft.com/en-us/windows/wsl/about) on Windows; LinuxKit / Hypervisor Framework on macOS)
+  - Apptainer can [use WSL/WSL2 on Windows](https://apptainer.org/docs/admin/main/installation.html#windows), with access to GPUs; [on macOS](https://apptainer.org/docs/admin/main/installation.html#mac), requires [Lima](https://lima-vm.io) as VM host (no GPU)
 
 ::: aside
 Figure modified from [Gianluca Quercini, Cloud computing -- Docker Primer](https://gquercini.github.io/courses/cloud-computing/references/docker-primer/)
@@ -98,18 +98,19 @@ Figure modified from [Gianluca Quercini, Cloud computing -- Docker Primer](https
 From [ELIXIR containers nextflow: Docker](https://biocorecrg.github.io/ELIXIR_containers_nextflow/docker.html)
 :::
 
-## Singularity: Containers for HPC
+## Apptainer / Singularity: Containers for HPC {.smaller}
 
 * HPC systems are shared computing environments
   - Docker daemon runs as root, processes within container can run as root
   - Not permissible on a shared computing environment
-* Singularity does not require elevated privileges
+* Apptainer does not require elevated privileges
   - Launcher run by user, not a daemon run by root
   - Processes inside container run as same user as outside
-* Singularity containers can be built (bootstrapped) from (many) Docker container images
+* Apptainer containers can be built (bootstrapped) from (many) Docker container images
   - Most scientific software containers are compatible
+  - Issues can occur for containers that run services under a privileged user (httpd, database server, etc)
 
-## Singularity architecture vs Docker
+## Apptainer / Singularity vs Docker
 
 ![](images/singularity_architecture.png)
 
@@ -162,15 +163,6 @@ CMD ["java", "-jar", "picard.jar"]
   - [GitHub Packages](https://ghcr.io) Repository (includes container images)
   - Gitlab container registry (gitlab-registry.oit.duke.edu for Duke OIT's Gitlab installation)
 
-## (Note) Container images are layered
-
-* Container file system is a [union mount](https://en.wikipedia.org/wiki/Union_mount)
-  - [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) supported by Linux kernel since 2014
-  - Allows layering image content
-  - Each command in the definition creates a layer
-  - Layers are cached for image builds and pulls
-* [Best practices for container definition](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/) include controlling layer cache invalidation
-
 ## (Note) Multi-stage builds 
 
 * Build layers are read-only
@@ -179,39 +171,50 @@ CMD ["java", "-jar", "picard.jar"]
   - Multiple container builds in one container definition
   - Use to retain build products but not the software environment needed to create them (which can be large)
 
-## (Note) Build docker, run singularity
+## (Note) Build docker, run apptainer
 
-* Building Docker images typically more flexible
-  - No Singularity Desktop version for Windows or macOS (requires Linux VM instead)
-  - `singularity build` normally requires `sudo` privileges
-* Singularity can use (most) Docker images directly
+* Building Docker container images typically more flexible
+  - No Apptainer Desktop version for Windows or macOS (requires Linux VM instead)
+  - Container build instructions may cause problems with `apptainer build` in unprivileged environment (which uses `--fakeroot` by default)
+* Apptainer can use (most) Docker images directly
   - Can download and run in one step:
     ```shell
-    $ singularity run docker://<docker_url> <cmd>
+    $ apptainer run docker://<docker_url> <cmd>
     ```
-* Use `--fakeroot` for `singularity build` in a non-privileged environment
 
-## (Note) Mounting data into the container
+## (Note) Mounting data into container {.smaller}
 
 Requires bind mount at container runtime (`docker run`):
 
-* `--volume <local-path>:<container-path>` (Docker)
-* `--bind <local-path>:<container-path>` (Singularity)
+* [Docker](https://docs.docker.com/engine/storage/bind-mounts/):
+
+  `--volume <local-path>:<container-path>`
+
+  or
+
+  `--mount type=bind,source=<local-path>,target=<container-path>`
+  
+  Using `--mount` generates an error if target directory (or file) doesn't exist
+
+* [Apptainer](https://apptainer.org/docs/user/main/bind_paths_and_mounts.html#user-defined-bind-paths):
+
+  `--bind <local-path>:<container-path>`
+  
+  Or use `--mount` (see above).
 * Can be used for directories and files
-* Using `--mount` generates an error if target directory (or file) doesn't exist
 
 ## Resources (I)
 
 * [Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
 * [Docker command line reference](https://docs.docker.com/engine/reference/commandline/cli/)
-* [Singularity file reference](https://docs.sylabs.io/guides/latest/user-guide/definition_files.html)
-* [Singularity command line reference](https://docs.sylabs.io/guides/latest/user-guide/cli.html)
-* [Open Containers Initiative (OCI) standard for annotations](https://github.com/opencontainers/image-spec/blob/main/annotations.md)
+* [Apptainer file reference](https://apptainer.org/docs/user/main/definition_files.html)
+* [Apptainer command line reference](https://apptainer.org/docs/user/main/cli.html)
+* [Open Containers Initiative (OCI) standard for annotations](https://specs.opencontainers.org/image-spec/annotations/)
 
 ## Resources (II)
 
-* [Introduction to Docker](https://carpentries-incubator.github.io/docker-introduction/) (Carpentries Incubator lesson)
+* [Intro to Docker Workshop](https://imageomics.github.io/docker-workshop/) (Based on Carpentries Incubator lesson)
+* [Into to Singularity Workshop](https://carpentries-incubator.github.io/singularity-introduction/) (Carpentries Incubator lesson)
 * [DCC OnDemand](https://dcc-ondemand-01.oit.duke.edu/)
 * [Jupyter Docker Stacks](https://jupyter-docker-stacks.readthedocs.io/)
   - Customized [Biostat Jupyter Docker container](https://github.com/Duke-GCB/biostat-jupyter)
-* [Biostat-823 "everything" GPU container](https://gitlab.oit.duke.edu/owzar001/bios-823-container-gpu/-/blob/main/README.md) (Singularity)
