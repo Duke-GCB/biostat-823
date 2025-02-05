@@ -140,3 +140,6 @@ dmypy.json
 *.tgz
 *.tar.gz
 *.backup
+
+*.parquet
+*.code-workspace
